@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Social & Sharing
+
+- Results page displays a rating component and share buttons for WhatsApp, X (Twitter), and generic sharing.
+- Shared content includes test title, link, time taken, and score.
+- See [components/SocialShare.tsx](mdc:components/SocialShare.tsx) for more.

@@ -1,0 +1,14 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Project Structure
+
+- The main application code is in the [app](mdc:app) directory at the root (not under `src`).
+- Subdirectories include [(auth)](mdc:app/(auth)), [dashboard](mdc:app/dashboard), and [tests/[testId]](mdc:app/tests/[testId]) under [app](mdc:app).
+- Shared React components are in [components](mdc:components).
+- React context is in [context](mdc:context).
+- Utility functions are in [utils](mdc:utils).
+- Third-party integrations and API clients are in [lib](mdc:lib).
+- Static assets are in [public](mdc:public).

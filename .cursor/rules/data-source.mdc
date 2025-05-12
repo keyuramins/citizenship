@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Data Source & CSV Handling
+
+- Four CSVs (`people.csv`, `values.csv`, `government.csv`, `beliefs.csv`) are stored in AWS S3.
+- Use the AWS SDK in [lib/awsS3.ts](mdc:lib/awsS3.ts) to fetch CSVs.
+- Use Papaparse in [utils/parseCsv.ts](mdc:utils/parseCsv.ts) to parse CSVs.
+- Parsed questions should be cached server-side for performance.

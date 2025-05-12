@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Dashboard & Profile
+
+- Dashboard lists tests 1–20 with status, score, pass/fail, attempts, and retake options.
+- Stats: total tests taken, pass rate, average score, average time.
+- Profile settings: change password, manage subscription.
+- See [app/dashboard/page.tsx](mdc:app/dashboard/page.tsx) for more.

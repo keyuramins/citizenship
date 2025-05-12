@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Navigation & Global Stats
+
+- The frontend displays total users and key metrics (active users, tests taken).
+- Navigation includes links to other tests in the header/sidebar.
+- Layout is responsive and mobile-first.
+- See [components/Layout.tsx](mdc:components/Layout.tsx) for more.

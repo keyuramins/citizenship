@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Quiz UI & Logic
+
+- Each test consists of 20 questions (5 from each category).
+- Questions and options are randomized per session.
+- Pass criteria: all 5 "values" questions correct and ≥ 75% overall.
+- 45-minute countdown timer visible on every practice test page.
+- UI features: question view, answer reveal, color codes (green/correct, red/incorrect, orange/review), review/skip, pagination, confirmation dialog on test switch, timeout handling.
+- See [app/tests/[testId]/page.tsx](mdc:app/tests/[testId]/page.tsx), [components/Timer.tsx](mdc:components/Timer.tsx) for details.

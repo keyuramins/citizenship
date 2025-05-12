@@ -1,0 +1,12 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Authentication & Billing
+
+- User authentication is handled via Supabase (email/password) using [lib/supabaseClient.ts](mdc:lib/supabaseClient.ts).
+- Paid subscriptions are managed via Stripe, integrated through Supabase and [lib/stripeClient.ts](mdc:lib/stripeClient.ts).
+- Free tier: first 5 questions free for up to 5 distinct practice tests; remaining questions are locked until upgrade.
+- Secure API routes for payments and test data.
+- Use Supabase RLS for securing user data.
