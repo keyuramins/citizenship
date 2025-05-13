@@ -1,0 +1,36 @@
+---
+description: Guidelines for performance optimization and security.
+globs: 
+alwaysApply: false
+---
+# Performance & Security
+
+## Performance
+- Optimize images (use WebP, proper sizing, lazy loading).
+- Implement code splitting with Next.js dynamic imports.
+- Use `next/font` for font optimization.
+- Configure Next.js router cache with `staleTimes`:
+  ```javascript
+  experimental: {
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
+  }
+  ```
+
+-Use server-side rendering and caching for data fetching.
+
+Security
+-Secure all API routes and endpoints.
+-Use Supabase RLS for data access control.
+-Validate user input to prevent injection attacks.
+-Use HTTPS for all requests.
+-Store sensitive data (e.g., API keys) in environment variables.
+-Implement CSRF protection for forms.
+
+Best Practices
+-Minimize client-side state to reduce bundle size.␍
+-Use cache: 'force-cache' for static data fetching.
+-Regularly audit dependencies for vulnerabilities.
+-Ensure secure session management with Supabase.

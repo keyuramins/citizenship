@@ -1,0 +1,44 @@
+---
+description: Guidelines for UI development and component architecture.
+globs: 
+alwaysApply: false
+---
+# UI Components & Styling
+
+## Component Architecture
+- Use shadcn/ui for all UI components (e.g., buttons, tables, forms).
+- Only import specific and required UI component from the library
+- Avoid importing full library
+- Store shared components in [components](mdc:components) (e.g., `Layout.tsx`, `Timer.tsx`, `SocialShare.tsx`).
+- Modularize components for reusability.
+- Favor React Server Components (RSC) unless client-side interactivity is required.
+- For client-side components, create separate files with `'use client'` directive and import them, create these components in the components directory under the proper module named groups.
+- Implement error boundaries.
+- Use Suspense for client side async operations
+
+## Styling
+- Use Tailwind CSS with a mobile-first approach.
+- Apply shadcn/ui global classes (e.g., `bg-primary`, `text-foreground`).
+- Avoid hardcoded classes (e.g., `bg-gray-500`).
+- Use CSS variables for theme customization.
+- Support light, dark, and system themes using `next-themes`.
+
+## Theme Management
+- Include `ThemeSwitcher` component in navigation.
+- Implement `ThemeSwitcher` in [components/ThemeSwitcher.tsx](mdc:components/ThemeSwitcher.tsx) using `next-themes` and `lucide-react` icons for light, dark, and system themes.
+
+## Accessibility
+- Implement proper ARIA attributes.
+- Ensure keyboard navigation support.
+- Provide alt text for images.
+- Follow WCAG 2.1 guidelines.
+
+## Responsive Design
+- Ensure layouts are responsive across breakpoints.
+- Use Tailwind’s responsive utilities (e.g., `sm:`, `md:`, `lg:`).
+
+## Best Practices
+- Optimize component rendering with memoization where necessary.
+- Use `next/font` with 'swap' for font optimization.
+- Follow consistent spacing and layout patterns.
+- Ensure components are reusable and maintainable.

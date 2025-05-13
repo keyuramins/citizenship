@@ -5,7 +5,24 @@ alwaysApply: false
 ---
 # Navigation & Global Stats
 
-- The frontend displays total users and key metrics (active users, tests taken).
-- Navigation includes links to other tests in the header/sidebar.
-- Layout is responsive and mobile-first.
-- See [components/Layout.tsx](mdc:components/Layout.tsx) for more.
+## Navigation
+- Implement in @components/Layout.tsx.
+- Include links to:
+  - Homepage.
+  - Dashboard.
+  - Practice tests.
+- Ensure responsive design with a mobile-friendly header/sidebar.
+- Include ThemeSwitcher component in navigation.
+
+## Global Stats
+- Display on homepage or dashboard:
+  - Total users.
+  - Total tests taken.
+  - Total Reviews
+- Fetch stats server-side using Supabase queries.
+- Secure data access with Supabase RLS.
+
+## Best Practices
+- Use shadcn/ui for navigation components (e.g., dropdowns, sidebars).
+- Ensure navigation is accessible (ARIA labels, keyboard support).
+- Optimize stats queries for performance.

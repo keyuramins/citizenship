@@ -5,7 +5,38 @@ alwaysApply: false
 ---
 # Data Source & CSV Handling
 
-- Four CSVs (`people.csv`, `values.csv`, `government.csv`, `beliefs.csv`) are stored in AWS S3.
-- Use the AWS SDK in [lib/awsS3.ts](mdc:lib/awsS3.ts) to fetch CSVs.
-- Use Papaparse in [utils/parseCsv.ts](mdc:utils/parseCsv.ts) to parse CSVs.
-- Parsed questions should be cached server-side for performance.
+## Data Source
+- Four CSV files (`https://aucitizen.s3.ap-southeast-2.amazonaws.com/people.csv`, `https://aucitizen.s3.ap-southeast-2.amazonaws.com/values.csv`, `https://aucitizen.s3.ap-southeast-2.amazonaws.com/government.csv`, `https://aucitizen.s3.ap-southeast-2.amazonaws.com/beliefs.csv`) stored in AWS S3.
+- Fetching:
+-- just fetch() your CSVs from S3’s HTTP endpoints in server-only code
+```
+// @utils/fetchCsv.ts
+export async function fetchCsv(name: string) {
+  const res = await fetch(
+    `https://aucitizen.s3.ap-southeast-2.amazonaws.com/${name}`,
+    { cache: 'no-store' } // or ISR options
+  );
+  if (!res.ok) throw new Error(`Failed to load ${name}: ${res.statusText}`);
+  return await res.text();
+}
+```
+const [people, values, government, beliefs] = await Promise.all([
+    fetchCsv('people.csv'),
+    fetchCsv('values.csv'),
+    fetchCsv('government.csv'),
+    fetchCsv('beliefs.csv'),
+  ]).then(texts => texts.map(parseCsv));
+  
+- Parse in @utils/parseCsv.ts.
+
+## Caching
+- Cache parsed questions server-side to improve performance.
+- Use Next.js `cache: 'force-cache'` for fetching CSVs where appropriate.
+- Invalidate cache only when CSV content changes.
+- Never expose the data from parseCsv.ts not required by the client or user is not allowed to read
+
+## Best Practices
+- Handle CSV parsing errors gracefully.
+- Validate CSV data structure before processing.
+- Use environment variables for AWS credentials.
+- Ensure secure access to S3 buckets.

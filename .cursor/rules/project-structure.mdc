@@ -6,9 +6,17 @@ alwaysApply: false
 # Project Structure
 
 - The main application code is in the [app](mdc:app) directory at the root (not under `src`).
-- Subdirectories include [(auth)](mdc:app/(auth)), [dashboard](mdc:app/dashboard), and [tests/[testId]](mdc:app/tests/[testId]) under [app](mdc:app).
+- Subdirectories include [dashboard](mdc:app/dashboard), and [tests/[testId]](mdc:app/tests/[testId]) under [app](mdc:app).
 - Shared React components are in [components](mdc:components).
 - React context is in [context](mdc:context).
 - Utility functions are in [utils](mdc:utils).
 - Third-party integrations and API clients are in [lib](mdc:lib).
 - Static assets are in [public](mdc:public).
+- Use shadcn/ui for all UI components.
+- Use Supabase client for data fetching and authentication.
+- Use Supabase RLS for securing user data.
+- Use Stripe via Supabase for paid access.
+- Modularize React components.
+- Use environment variables for all secrets and API keys.
+- Ensure all routes and API endpoints are secure.
+- Do **not** use `.mjs` file extension for config files. Use `.js` instead for all config files.

@@ -52,7 +52,7 @@ package.json
 
 ## Data Source
 - Four CSVs in AWS S3: `people.csv`, `values.csv`, `government.csv`, `beliefs.csv`
-- AWS SDK for fetching, Papaparse for parsing, server-side caching for performance
+- Papaparse for parsing, server-side caching for performance
 
 ## Setup & Deployment
 1. **Clone the repo**
@@ -76,7 +76,6 @@ package.json
 - Next.js (App Router)
 - Supabase (auth, database, RLS)
 - Stripe (billing)
-- AWS SDK (S3)
 - Papaparse (CSV parsing)
 - shadcn/ui (UI components)
 

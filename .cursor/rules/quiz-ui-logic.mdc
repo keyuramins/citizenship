@@ -5,9 +5,34 @@ alwaysApply: false
 ---
 # Quiz UI & Logic
 
-- Each test consists of 20 questions (5 from each category).
-- Questions and options are randomized per session.
-- Pass criteria: all 5 "values" questions correct and ≥ 75% overall.
-- 45-minute countdown timer visible on every practice test page.
-- UI features: question view, answer reveal, color codes (green/correct, red/incorrect, orange/review), review/skip, pagination, confirmation dialog on test switch, timeout handling.
-- See [app/tests/[testId]/page.tsx](mdc:app/tests/[testId]/page.tsx), [components/Timer.tsx](mdc:components/Timer.tsx) for details.
+## Quiz Structure
+- Each test consists of 20 questions (5 from each category: values, people, government, beliefs).
+- Randomize questions and answer options per session using @utils/shuffle.ts.
+- Pass criteria:
+  - All 5 "values" questions correct.
+  - Overall score ≥ 75%.
+
+## UI Features
+- Located in [app/tests/[testId]/page.tsx](mdc:app/tests/[testId]/page.tsx).
+- Components:
+  - Question view with options (@components/QuestionCard.tsx).
+  - Pagination (@components/Pagination.tsx).
+  - 45-minute countdown timer (@components/Timer.tsx).
+- Visual feedback:
+  - Color codes: green (correct), red (incorrect), orange (review), green (description).
+  - Answer and description to be revealed upon option selection.
+- Interaction:
+  - Review/skip questions.
+  - Confirmation dialog on test switch.
+  - Timeout handling with automatic submission.
+  - Users cannot amend/change their selected option upon submission
+
+## Logic
+- Use React context in @context/TestContext.tsx for test state management.
+- Fetch questions server-side from cached CSVs.
+- Secure premium question access with Supabase RLS and Stripe subscription checks.
+
+## Best Practices
+- Use shadcn/ui for UI components.
+- Ensure responsive, mobile-first design.
+- Handle edge cases (e.g., timeout, navigation away from test).

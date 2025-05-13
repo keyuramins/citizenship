@@ -5,8 +5,24 @@ alwaysApply: false
 ---
 # Authentication & Billing
 
-- User authentication is handled via Supabase (email/password) using [lib/supabaseClient.ts](mdc:lib/supabaseClient.ts).
-- Paid subscriptions are managed via Stripe, integrated through Supabase and [lib/stripeClient.ts](mdc:lib/stripeClient.ts).
-- Free tier: first 5 questions free for up to 5 distinct practice tests; remaining questions are locked until upgrade.
-- Secure API routes for payments and test data.
-- Use Supabase RLS for securing user data.
+## Authentication
+- Use Supabase for user authentication (email/password) authentication logic in @lib/supabaseClient.ts using `supabase/ssr`.
+- Secure user ow Level Security (RLS).
+- Authentication routes must be located directly in the `app/` directory without any subdirectories or route groups like `auth` or `(auth)`.
+     *  Use: `app/login/page.tsx`, `app/register/page.tsx`
+     *  Avoid: `app/auth/login.tsx`, `app/(auth)/login.tsx`, `app/auth/(auth)/login.tsx`
+     **Resulting URLs must be:**
+     `https://example.com/login`
+     `https://example.com/register`
+
+## Billing
+- Manage paid subscriptions via Stripe, integrated through Supabase.
+- Implement Stripe logic in @lib/stripeClient.ts.
+- Free tier: First 5 questions free for up to 5 distinct practice tests; remaining questions are locked until subscription upgrade.
+- Secure API routes for payment processing and test data access.
+
+## Best Practices
+- Ensure all authentication and billing routes are protected.
+- Use environment variables for Supabase and Stripe API keys.
+- Handle errors gracefully with user-friendly messages.
+- Validate subscription status before granting access to premium content.

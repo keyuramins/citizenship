@@ -3,8 +3,22 @@ description:
 globs: 
 alwaysApply: false
 ---
-# Social & Sharing
+# Social Sharing
 
-- Results page displays a rating component and share buttons for WhatsApp, X (Twitter), and generic sharing.
-- Shared content includes test title, link, time taken, and score.
-- See [components/SocialShare.tsx](mdc:components/SocialShare.tsx) for more.
+## Features
+- Implement on results page using @components/SocialShare.tsx.
+- Include share buttons for:
+  - WhatsApp.
+  - X (Twitter).
+  - Facebook.
+- Shared content includes:
+  - Test title.
+  - Test link.
+  - Time taken.
+  - Score.
+- Display a rating component for user feedback.
+
+## Best Practices
+- Use shadcn/ui for buttons and rating component.
+- Ensure share links are properly encoded.
+- Test sharing functionality to be responsive on mobile and desktop.

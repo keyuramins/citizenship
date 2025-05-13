@@ -5,7 +5,24 @@ alwaysApply: false
 ---
 # Dashboard & Profile
 
-- Dashboard lists tests 1–20 with status, score, pass/fail, attempts, and retake options.
-- Stats: total tests taken, pass rate, average score, average time.
-- Profile settings: change password, manage subscription.
-- See [app/dashboard/page.tsx](mdc:app/dashboard/page.tsx) for more.
+## Dashboard
+- Located in @app/dashboard/page.tsx.
+- Displays tests 1–20 with:
+  - Status (completed, in-progress, not started).
+  - Score, pass/fail status, number of attempts, and retake options.
+- Shows user statistics:
+  - Pass rate.
+  - Average score.
+  - Average time per test.
+
+## Profile
+- Accessible from dashboard.
+- Features:
+  - Password change.
+  - Subscription management (view, upgrade, cancel).
+- Ensure secure handling of user data with Supabase RLS.
+
+## UI Requirements
+- Use shadcn/ui components for tables, buttons, and forms.
+- Follow responsive, mobile-first design with Tailwind CSS.
+- Include ThemeSwitcher component for theme management.
