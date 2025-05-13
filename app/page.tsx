@@ -1,27 +1,48 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { Button } from "../components/ui/button";
-import ThemeSwitcher from "../components/ThemeSwitcher";
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://localhost:3000";
+const siteName = process.env.NEXT_PUBLIC_SITENAME;
+
+export const metadata: Metadata = {
+  title: `${siteName} | Pass Your Test with Confidence`,
+  description: "Practice for your citizenship test with realistic questions, instant feedback, and progress tracking. Free and premium plans available. Prepare, practice, and succeed!",
+  keywords: [
+    "citizenship test", "practice test", "citizenship exam", "study", "questions", "Australia", "US", "UK", "Canada", "free test", "premium test", "progress tracking"
+  ],
+  robots: "index, follow",
+  alternates: {
+    canonical: siteUrl,
+  },
+  openGraph: {
+    title: `${siteName} | Pass Your Test with Confidence`,
+    description: "Practice for your citizenship test with realistic questions, instant feedback, and progress tracking.",
+    url: siteUrl,
+    siteName,
+    images: [
+      {
+        url: `${siteUrl}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: siteName,
+      },
+    ],
+    locale: "en_AU",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${siteName} | Pass Your Test with Confidence`,
+    description: "Practice for your citizenship test with realistic questions, instant feedback, and progress tracking.",
+    images: [`${siteUrl}/og-image.png`],
+    site: siteName,
+  },
+};
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
-      {/* Header */}
-      <header className="flex items-center justify-between px-8 py-4 border-b border-border">
-        <div className="flex items-center gap-8">
-          <span className="font-bold text-xl">CitizenPrep</span>
-          <nav className="hidden md:flex gap-6 text-sm text-muted-foreground">
-            <a href="#" className="hover:text-foreground">About</a>
-            <a href="#" className="hover:text-foreground">Pricing</a>
-            <a href="#" className="hover:text-foreground">Contact</a>
-          </nav>
-        </div>
-        <div className="flex gap-2 items-center">
-          <ThemeSwitcher />
-          <Button variant="ghost" className="text-foreground border border-border">Login</Button>
-          <Button variant="default">Sign Up</Button>
-        </div>
-      </header>
-
+    <div className="flex flex-col bg-background text-foreground">
       {/* Hero Section */}
       <section className="flex flex-col md:flex-row items-center justify-between px-8 py-16 max-w-6xl mx-auto w-full gap-12">
         <div className="flex-1 flex flex-col gap-6">
@@ -33,7 +54,7 @@ export default function Home() {
           </div>
         </div>
         <div className="flex-1 flex justify-center">
-          <Image src="/illustration.svg" alt="Citizenship Test" width={350} height={250} className="rounded-lg bg-card" />
+          <Image src="/aucitizentestimage.svg" alt="Citizenship Test" width={350} height={250} className="rounded-lg bg-card" />
         </div>
       </section>
 
@@ -125,15 +146,6 @@ export default function Home() {
           <Button variant="outline" size="lg">Contact Us</Button>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="py-6 px-8 border-t border-border flex flex-col md:flex-row items-center justify-between text-xs text-muted-foreground">
-        <div>&copy; 2025 CitizenPrep. All rights reserved.</div>
-        <div className="flex gap-4 mt-2 md:mt-0">
-          <a href="#" className="hover:underline">Terms</a>
-          <a href="#" className="hover:underline">Privacy</a>
-        </div>
-      </footer>
     </div>
   );
 }

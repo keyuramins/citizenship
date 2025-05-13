@@ -6,28 +6,18 @@ alwaysApply: false
 # Data Source & CSV Handling
 
 ## Data Source
-- Four CSV files (`https://aucitizen.s3.ap-southeast-2.amazonaws.com/people.csv`, `https://aucitizen.s3.ap-southeast-2.amazonaws.com/values.csv`, `https://aucitizen.s3.ap-southeast-2.amazonaws.com/government.csv`, `https://aucitizen.s3.ap-southeast-2.amazonaws.com/beliefs.csv`) stored in AWS S3.
+- Four CSV files (e.g., `people.csv`, `values.csv`, `government.csv`, `beliefs.csv`) stored in AWS S3.
+- **S3 object keys (CSV filenames/paths) must be stored in environment variables** (e.g., `S3_PEOPLE_KEY`, `S3_VALUES_KEY`, etc.) for flexibility and future-proofing.
+- Always access S3 object keys in code via `process.env.S3_..._KEY`.
+- Example usage:
+  ```ts
+  const peopleKey = process.env.S3_PEOPLE_KEY!;
+  const valuesKey = process.env.S3_VALUES_KEY!;
+  // ...
+  ```
 - Fetching:
--- just fetch() your CSVs from S3’s HTTP endpoints in server-only code
-```
-// @utils/fetchCsv.ts
-export async function fetchCsv(name: string) {
-  const res = await fetch(
-    `https://aucitizen.s3.ap-southeast-2.amazonaws.com/${name}`,
-    { cache: 'no-store' } // or ISR options
-  );
-  if (!res.ok) throw new Error(`Failed to load ${name}: ${res.statusText}`);
-  return await res.text();
-}
-```
-const [people, values, government, beliefs] = await Promise.all([
-    fetchCsv('people.csv'),
-    fetchCsv('values.csv'),
-    fetchCsv('government.csv'),
-    fetchCsv('beliefs.csv'),
-  ]).then(texts => texts.map(parseCsv));
-  
-- Parse in @utils/parseCsv.ts.
+-- Use AWS SDK with credentials from environment variables to fetch private S3 objects.
+-- Use the object key from the environment variable when calling AWS SDK methods.
 
 ## Caching
 - Cache parsed questions server-side to improve performance.
@@ -38,5 +28,5 @@ const [people, values, government, beliefs] = await Promise.all([
 ## Best Practices
 - Handle CSV parsing errors gracefully.
 - Validate CSV data structure before processing.
-- Use environment variables for AWS credentials.
+- Use environment variables for AWS credentials and S3 object keys.
 - Ensure secure access to S3 buckets.

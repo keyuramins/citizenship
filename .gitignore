@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# aws
+.aws-sam
+
+# aws-lambda
+.aws-lambda
+
+# aws-lambda-layer
+.aws-lambda-layer
+
+# cursor
+.cursor

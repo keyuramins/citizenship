@@ -40,6 +40,8 @@ The Citizenship Practice Test Platform is a full-stack web application for pract
 - Social sharing (WhatsApp, X/Twitter, Facebook).
 - Global stats and responsive, mobile-first layout.
 - Modular React components using shadcn/ui.
+- Keep all public pages server side (If there is a need, create a client side component and use it accordingly)
+- User cannot delete their account if there is an ongoing Stripe subscription, Once the subscription is disabled is when the account can be deleted.
 
 ## Project Structure
 See [project-structure.mdc](mdc:.cursor/rules/project-structure.mdc) for detailed structure.

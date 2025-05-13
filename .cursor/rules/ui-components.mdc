@@ -35,10 +35,19 @@ alwaysApply: false
 
 ## Responsive Design
 - Ensure layouts are responsive across breakpoints.
-- Use Tailwind’s responsive utilities (e.g., `sm:`, `md:`, `lg:`).
+- Use Tailwind's responsive utilities (e.g., `sm:`, `md:`, `lg:`).
 
 ## Best Practices
 - Optimize component rendering with memoization where necessary.
 - Use `next/font` with 'swap' for font optimization.
 - Follow consistent spacing and layout patterns.
 - Ensure components are reusable and maintainable.
+
+## Hydration Warnings
+- When using client-only theming (e.g., with next-themes), always add `suppressHydrationWarning` to the <html> element in app/layout.tsx to prevent hydration mismatch warnings in the console.
+- Example:
+  ```tsx
+  <html lang="en" suppressHydrationWarning>
+    ...
+  </html>
+  ```

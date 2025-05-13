@@ -10,8 +10,10 @@ alwaysApply: false
 - Move GTM initialization to an external JS file for better maintainability.
 - Use meta tags, title, description, and semantic HTML. Accessibility could be improved with `aria-label`s.
 - Add self-referencing canonical URL
-- Add `<meta property="og:title">`, `og:description`, `og:image`, and their Twitter equivalents for social sharing previews.
+- Add `<meta property="og:title">`, `og:description`, `og:image`, and their X equivalents for social sharing previews.
 - Add JSON-LD for FAQ, Breadcrumb, or Product (if applicable) to enhance search appearance.
 - Add 'alt' tags to all images and make it descriptive
-- Add internal links appropriately where required.
-- Add `<meta name="robots" content="index, follow">` explicitly. Include `/sitemap.xml` in robots.txt.
+- Add internal links appropriately where required using <Link>.
+- Add `<meta name="robots" content="index, follow">` explicitly. 
+- Include `/sitemap.xml` in robots.txt.
+- use <Link> from next/link for all header navigation
