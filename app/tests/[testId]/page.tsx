@@ -1,3 +1,4 @@
+// Next.js 15: params should be an object, not a Promise. Do not type as Promise<any>.
 export default function TestPage({ params }: { params: { testId: string } }) {
   return (
     <div className="p-8">
