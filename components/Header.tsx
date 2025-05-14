@@ -36,7 +36,7 @@ export default function Header() {
   };
 
   // Helper to get display name
-  const displayName = user?.user_metadata?.display_name || "Profile";
+  const displayName = user?.user_metadata?.displayName || "Profile";
 
   return (
     <header className="w-full border-b shadow-sm px-4 py-2 flex items-center justify-between bg-background text-foreground">

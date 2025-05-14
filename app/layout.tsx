@@ -28,7 +28,7 @@ export default function RootLayout({
           </div>
         </noscript>
       </head>
-      <body className={`${inter.variable} antialiased`}>
+      <body className={`${inter.variable} antialiased`} suppressHydrationWarning>
         <ClientThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <Header />
           <main className="flex-1 flex flex-col min-h-screen" aria-label="Main content">
