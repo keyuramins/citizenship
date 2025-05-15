@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabaseBrowserClient } from "../lib/supabaseClient";
+import { supabaseBrowserClient } from "../lib/supabaseBrowserClient";
 import ThemeSwitcher from "./ThemeSwitcher";
 import { Button } from "./ui/button";
 import {

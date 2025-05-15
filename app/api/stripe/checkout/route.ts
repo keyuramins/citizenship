@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createStripeCheckoutSession } from '@/lib/stripeClient';
+import { createStripeCheckoutSession } from '../../../../lib/stripeClient';
 
 export async function POST(req: NextRequest) {
   const { priceId, customerEmail, customerId } = await req.json();

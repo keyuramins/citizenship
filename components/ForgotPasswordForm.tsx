@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { supabaseBrowserClient } from "../lib/supabaseClient";
+import { supabaseBrowserClient } from "../lib/supabaseBrowserClient";
 import { Button } from "./ui/button";
 
 export default function ForgotPasswordForm() {

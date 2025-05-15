@@ -7,7 +7,7 @@ import { Label } from "../ui/label";
 import { Alert } from "../ui/alert";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
-import { supabaseBrowserClient } from "../../lib/supabaseClient";
+import { supabaseBrowserClient } from "../../lib/supabaseBrowserClient";
 
 export default function Profile() {
   const [user, setUser] = useState<any>(null);

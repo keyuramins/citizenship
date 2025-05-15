@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripeClient';
-import { createSupabaseServerClient } from '@/lib/supabaseClient';
+import { stripe } from '../../../../lib/stripeClient';
+import { createSupabaseServerClient } from '../../../../lib/supabaseClient';
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const customerEmail = session.customer_email;
     const subscriptionId = session.subscription;
     // Update Supabase user
-    const supabase = createSupabaseServerClient({});
+    const supabase = await createSupabaseServerClient();
     const { data: user, error } = await supabase
       .from('users')
       .select('id, email, raw_user_meta_data')

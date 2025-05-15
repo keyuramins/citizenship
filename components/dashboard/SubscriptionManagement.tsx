@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
-import { supabaseBrowserClient } from "../../lib/supabaseClient";
+import { supabaseBrowserClient } from "../../lib/supabaseBrowserClient";
 
 export default function SubscriptionManagement() {
+  if (!supabaseBrowserClient) return null;
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [subscription, setSubscription] = useState<string | null>(null);
@@ -13,7 +15,7 @@ export default function SubscriptionManagement() {
     async function fetchSub() {
       setLoading(true);
       setError("");
-      const { data, error } = await supabaseBrowserClient.auth.getUser();
+      const { data, error } = await supabaseBrowserClient!.auth.getUser();
       if (error) {
         setError("Failed to load user");
         setLoading(false);
