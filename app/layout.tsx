@@ -1,4 +1,5 @@
 import { Inter } from "next/font/google";
+import NextTopLoader from "nextjs-toploader";
 import "./globals.css";
 import ClientThemeProvider from "../components/ClientThemeProvider";
 import Header from "../components/Header";
@@ -30,6 +31,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} antialiased`} suppressHydrationWarning>
         <ClientThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <NextTopLoader color="#2563eb" showSpinner={false} />
           <Header />
           <main className="flex-1 flex flex-col min-h-screen" aria-label="Main content">
             {children}
