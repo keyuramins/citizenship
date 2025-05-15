@@ -4,9 +4,10 @@ interface QuestionCardProps {
   onAnswer: (option: string) => void;
   selectedOption?: string;
   correctOption?: string;
+  explanation?: string;
 }
 
-export function QuestionCard({ question, options, onAnswer, selectedOption, correctOption }: QuestionCardProps) {
+export function QuestionCard({ question, options, onAnswer, selectedOption, correctOption, explanation }: QuestionCardProps) {
   return (
     <div className="mb-6">
       <h2 className="text-lg font-semibold mb-2">{question}</h2>
@@ -22,6 +23,11 @@ export function QuestionCard({ question, options, onAnswer, selectedOption, corr
           </button>
         ))}
       </div>
+      {selectedOption && (
+        <div className="mt-4 p-3 rounded bg-green-100 dark:bg-green-700 text-black dark:text-white">
+          <span className="font-semibold">Explanation:</span> {explanation}
+        </div>
+      )}
     </div>
   );
 } 

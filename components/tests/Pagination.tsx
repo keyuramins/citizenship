@@ -10,7 +10,7 @@ export function Pagination({ total, current, onNavigate }: PaginationProps) {
       {Array.from({ length: total }).map((_, i) => (
         <button
           key={i}
-          className={`w-8 h-8 rounded-full border ${i === current ? 'bg-blue-500 text-white' : 'bg-white border-gray-300'}`}
+          className={`w-8 h-8 rounded ${i === current ? 'bg-green-600 text-white' : 'bg-gray-800 text-white border border-gray-700'}`}
           onClick={() => onNavigate(i)}
         >
           {i + 1}

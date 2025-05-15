@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../components/ui/tabs";
 import { Button } from "../../components/ui/button";
+import Link from "next/link";
 
 interface TestQuestion {
   question: string;
@@ -40,16 +41,16 @@ export default function PracticeTestsTabs({ sequentialTests, randomizedTests }: 
         <TabsTrigger value="random">Random</TabsTrigger>
       </TabsList>
       <TabsContent value="sequential">
-        <PracticeTestGrid tests={sequentialTests} isPremium={isPremium} />
+        <PracticeTestGrid tests={sequentialTests} isPremium={isPremium} type="sequential" />
       </TabsContent>
       <TabsContent value="random">
-        <PracticeTestGrid tests={randomizedTests} isPremium={isPremium} />
+        <PracticeTestGrid tests={randomizedTests} isPremium={isPremium} type="random" />
       </TabsContent>
     </Tabs>
   );
 }
 
-function PracticeTestGrid({ tests, isPremium }: { tests: Test[]; isPremium: boolean }) {
+function PracticeTestGrid({ tests, isPremium, type }: { tests: Test[]; isPremium: boolean; type: string }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {tests.map((test, i) => {
@@ -64,7 +65,9 @@ function PracticeTestGrid({ tests, isPremium }: { tests: Test[]; isPremium: bool
             {locked ? (
               <Button variant="secondary" disabled className="w-full">Premium Only</Button>
             ) : (
-              <Button className="w-full">Start Test</Button>
+              <Button asChild className="w-full">
+                <Link href={`/tests/${type}/${i + 1}`}>Start Test</Link>
+              </Button>
             )}
           </div>
         );
