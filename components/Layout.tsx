@@ -1,9 +1,11 @@
 import { ReactNode } from "react";
+import NextTopLoader from "nextjs-toploader";
 import ThemeSwitcher from "./ThemeSwitcher";
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
+      <NextTopLoader color="#2563eb" showSpinner={false} />
       <header className="p-4 border-b flex items-center justify-between">
         <span className="font-bold text-lg">Citizenship Practice</span>
         <ThemeSwitcher />
