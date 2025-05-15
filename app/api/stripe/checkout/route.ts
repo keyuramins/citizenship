@@ -2,8 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createStripeCheckoutSession } from '../../../../lib/stripeClient';
 
 export async function POST(req: NextRequest) {
-  const { priceId, customerEmail, customerId } = await req.json();
-  const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_BASE_URL;
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    // fallback for form-encoded
+    const text = await req.text();
+    body = Object.fromEntries(new URLSearchParams(text));
+  }
+  const { priceId, customerEmail, customerId } = body;
+  const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL;
   try {
     const session = await createStripeCheckoutSession({
       priceId,
