@@ -33,7 +33,7 @@ export default function Profile() {
         setError("Failed to load user");
       } else {
         setUser(data.user);
-        setDisplayName(data.user.user_metadata?.displayName || "");
+        setDisplayName(data.user.user_metadata?.displayName || data.user.user_metadata?.full_name || "");
         setEmail(data.user.email ?? "");
       }
       setLoading(false);
