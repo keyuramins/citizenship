@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Button } from "../components/ui/button";
 import { getStripeProductsWithPrices } from "../lib/stripeClient";
+import SubscribeButton from "../components/SubscribeButton";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://localhost:3000";
 const siteName = process.env.NEXT_PUBLIC_SITENAME;
@@ -125,10 +126,7 @@ export default async function Home() {
                     {price.unit_amount && (price.unit_amount / 100).toLocaleString(undefined, { style: 'currency', currency: price.currency.toUpperCase() })}
                     {price.recurring ? ` / ${price.recurring.interval}` : ""}
                   </div>
-                  <form action="/api/stripe/checkout" method="POST">
-                    <input type="hidden" name="priceId" value={price.id} />
-                    <button type="submit" className="mt-2 px-4 py-2 bg-primary text-white rounded">Subscribe</button>
-                  </form>
+                  <SubscribeButton priceId={price.id} />
                 </div>
               ))}
             </div>
