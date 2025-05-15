@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { Button } from "../components/ui/button";
+import { getStripeProductsWithPrices } from "../lib/stripeClient";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://localhost:3000";
 const siteName = process.env.NEXT_PUBLIC_SITENAME;
@@ -40,7 +41,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Home() {
+export default async function Home() {
+  const products = await getStripeProductsWithPrices();
   return (
     <div className="flex flex-col bg-background text-foreground">
       {/* Hero Section */}
@@ -112,28 +114,25 @@ export default function Home() {
       <section className="bg-card py-16 px-8">
         <h2 className="text-2xl font-bold text-center mb-10">Simple, Transparent Pricing</h2>
         <p className="text-center text-muted-foreground mb-8">Choose the plan that works for you</p>
-        <div className="flex flex-col md:flex-row gap-8 max-w-3xl mx-auto">
-          <div className="flex-1 border border-border rounded-lg p-8 flex flex-col items-center bg-background">
-            <div className="font-semibold mb-2">Free Plan</div>
-            <div className="text-3xl font-bold mb-2">$0</div>
-            <ul className="text-muted-foreground text-sm mb-6 space-y-1">
-              <li>✓ First 5 questions on 5 practice tests</li>
-              <li>✓ Basic progress tracking</li>
-              <li>✓ Access to study materials</li>
-            </ul>
-            <Button className="w-full">Sign Up Free</Button>
-          </div>
-          <div className="flex-1 border border-border rounded-lg p-8 flex flex-col items-center bg-background">
-            <div className="font-semibold mb-2">Premium Plan</div>
-            <div className="text-3xl font-bold mb-2">$19.99</div>
-            <ul className="text-muted-foreground text-sm mb-6 space-y-1">
-              <li>✓ Full access to all 20 practice tests</li>
-              <li>✓ Detailed performance analytics</li>
-              <li>✓ Unlimited practice sessions</li>
-              <li>✓ Priority support</li>
-            </ul>
-            <Button className="w-full" variant="secondary">Get Premium</Button>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {products.map((product: any) => (
+            <div key={product.id} className="border rounded-lg p-6 bg-card">
+              <h2 className="text-xl font-semibold mb-2">{product.name}</h2>
+              <p className="mb-4 text-muted-foreground">{product.description}</p>
+              {product.prices.map((price: any) => (
+                <div key={price.id} className="mb-2">
+                  <div className="text-lg font-bold">
+                    {price.unit_amount && (price.unit_amount / 100).toLocaleString(undefined, { style: 'currency', currency: price.currency.toUpperCase() })}
+                    {price.recurring ? ` / ${price.recurring.interval}` : ""}
+                  </div>
+                  <form action="/api/stripe/checkout" method="POST">
+                    <input type="hidden" name="priceId" value={price.id} />
+                    <button type="submit" className="mt-2 px-4 py-2 bg-primary text-white rounded">Subscribe</button>
+                  </form>
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
       </section>
 
