@@ -17,12 +17,13 @@ interface Question {
 
 const TEST_DURATION = 45 * 60; // 45 minutes in seconds
 
-export default function PracticeTestClient({ questions }: { questions: Question[] }) {
+export default function PracticeTestClient({ questions, isPremium }: { questions: Question[]; isPremium: boolean }) {
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<(string | undefined)[]>(Array(questions.length).fill(undefined));
   const [review, setReview] = useState<boolean[]>(Array(questions.length).fill(false));
   const [completed, setCompleted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(TEST_DURATION);
+  const [showToast, setShowToast] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Timer logic
@@ -70,6 +71,11 @@ export default function PracticeTestClient({ questions }: { questions: Question[
 
   // Navigation
   const handleNavigate = (idx: number) => {
+    if (!isPremium && idx >= 5) {
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2000);
+      return;
+    }
     setCurrent(idx);
   };
 
@@ -178,7 +184,13 @@ export default function PracticeTestClient({ questions }: { questions: Question[
           answers={answers}
           review={review}
           getNavColor={getNavColor}
+          isPremium={isPremium}
         />
+        {showToast && (
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-orange-600 text-white px-4 py-2 rounded shadow z-50">
+            Upgrade to Premium to unlock all questions!
+          </div>
+        )}
       </div>
     </div>
   );
