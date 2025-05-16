@@ -8,6 +8,7 @@ import { Alert } from "../ui/alert";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { supabaseBrowserClient } from "../../lib/supabaseBrowserClient";
+import Link from "next/link";
 
 export default function Profile() {
   const [user, setUser] = useState<any>(null);
@@ -19,6 +20,10 @@ export default function Profile() {
   const [showDelete, setShowDelete] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
 
   useEffect(() => {
     async function fetchUser() {
@@ -56,17 +61,26 @@ export default function Profile() {
     setSaving(false);
   }
 
-  async function handleResetPassword() {
-    setError("");
-    setSuccess("");
+  async function handleChangePassword() {
+    setPasswordError("");
+    setPasswordSuccess("");
     if (!supabaseBrowserClient) {
-      setError("Supabase client not available.");
+      setPasswordError("Supabase client not available.");
       return;
     }
-    const { error } = await supabaseBrowserClient.auth.resetPasswordForEmail(email);
-    if (error) setError("Failed to send reset email");
-    else setSuccess("Password reset email sent");
-    setShowReset(false);
+    if (!newPassword || newPassword.length < 12) {
+      setPasswordError("Password must be at least 12 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Passwords do not match.");
+      return;
+    }
+    const { error } = await supabaseBrowserClient.auth.updateUser({ password: newPassword });
+    if (error) setPasswordError(error.message || "Failed to update password");
+    else setPasswordSuccess("Password updated successfully.");
+    setNewPassword("");
+    setConfirmPassword("");
   }
 
   async function handleDeleteAccount() {
@@ -82,6 +96,8 @@ export default function Profile() {
     else setSuccess("Account deleted");
     setShowDelete(false);
   }
+
+  const hasActiveSubscription = !!user?.user_metadata?.subscription;
 
   if (loading) return <div>Loading...</div>;
 
@@ -116,44 +132,74 @@ export default function Profile() {
           />
         </div>
         <div className="mb-4">
-          <Dialog open={showReset} onOpenChange={setShowReset}>
-            <DialogTrigger asChild>
-              <Button variant="outline">Reset Password</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Reset Password</DialogTitle>
-                <DialogDescription>
-                  Send password reset email to <span className="font-semibold">{email}</span>?
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button onClick={handleResetPassword}>Send Email</Button>
-                <Button variant="ghost" onClick={() => setShowReset(false)}>
-                  Cancel
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          {/* Only show password change for email/password users */}
+          {user?.raw_app_meta_data?.provider === 'google' ? (
+            <div className="text-muted-foreground text-sm">You signed up with Google. Password change is not available for Google login accounts.</div>
+          ) : user?.app_metadata?.provider === 'email' && (
+            <div className="border rounded p-4">
+              <div className="font-semibold mb-2">Change Password</div>
+              <div className="mb-2">
+                <Label htmlFor="newPassword">New Password</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  className="mt-1"
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                />
+              </div>
+              <div className="mb-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  className="mt-1"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                />
+              </div>
+              <Button className="mt-2" onClick={handleChangePassword} disabled={saving}>
+                Change Password
+              </Button>
+              {passwordError && <Alert variant="destructive" className="mt-2">{passwordError}</Alert>}
+              {passwordSuccess && <Alert variant="default" className="mt-2">{passwordSuccess}</Alert>}
+            </div>
+          )}
+          {user && !user.raw_app_meta_data?.provider && user?.app_metadata?.provider !== 'email' && (
+            <div className="text-muted-foreground text-sm">Password change is not available for social login accounts.</div>
+          )}
         </div>
         <div className="mb-4">
           <Dialog open={showDelete} onOpenChange={setShowDelete}>
             <DialogTrigger asChild>
-              <Button variant="destructive">Delete Account</Button>
+              <Button variant="destructive" disabled={hasActiveSubscription}>
+                Delete Account
+              </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Delete Account</DialogTitle>
                 <DialogDescription>
-                  <span className="text-red-700 font-semibold">
-                    Warning: This action is irreversible. Your account and all data will be deleted.
-                  </span>
+                  {hasActiveSubscription ? (
+                    <span className="text-red-700 font-semibold">
+                      You have an active subscription. Please cancel your subscription before deleting your account.
+                    </span>
+                  ) : (
+                    <span className="text-red-700 font-semibold">
+                      Warning: This action is irreversible. Your account and all data will be deleted.
+                    </span>
+                  )}
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button variant="destructive" onClick={handleDeleteAccount}>
+                <Button variant="destructive" onClick={handleDeleteAccount} disabled={hasActiveSubscription}>
                   Confirm Delete
                 </Button>
+                {hasActiveSubscription && (
+                  <Button asChild variant="outline">
+                    <Link href="/subscription">Manage Subscription</Link>
+                  </Button>
+                )}
                 <Button variant="ghost" onClick={() => setShowDelete(false)}>
                   Cancel
                 </Button>

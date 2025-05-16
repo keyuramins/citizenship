@@ -2,14 +2,14 @@
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { supabaseBrowserClient } from "../../lib/supabaseBrowserClient";
+import SubscribeButton from "../SubscribeButton";
 
-export default function SubscriptionManagement() {
+export default function SubscriptionManagement({ upgradePriceId }: { upgradePriceId: string }) {
   if (!supabaseBrowserClient) return null;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [subscription, setSubscription] = useState<string | null>(null);
-  const [portalUrl, setPortalUrl] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchSub() {
@@ -27,25 +27,6 @@ export default function SubscriptionManagement() {
     fetchSub();
   }, []);
 
-  async function openPortal() {
-    setError("");
-    setLoading(true);
-    try {
-      const res = await fetch("/api/stripe/portal", { method: "POST" });
-      const { url } = await res.json();
-      if (url) {
-        setPortalUrl(url);
-        window.location.href = url;
-      } else {
-        setError("Could not open portal");
-      }
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
     <div className="max-w-md mx-auto p-6 bg-card rounded shadow mt-8">
       <h2 className="text-xl font-bold mb-4">Manage Subscription</h2>
@@ -55,9 +36,11 @@ export default function SubscriptionManagement() {
         <div className="font-semibold">Current Plan:</div>
         <div>{subscription ? "Premium" : "Free"}</div>
       </div>
-      <Button onClick={openPortal} disabled={loading || !subscription}>
-        {subscription ? "Manage Subscription" : "Upgrade to Premium"}
-      </Button>
+      {!subscription ? (
+        <SubscribeButton priceId={upgradePriceId} label="Upgrade Now" />
+      ) : (
+        <Button disabled className="w-full">You are already Premium</Button>
+      )}
     </div>
   );
 } 

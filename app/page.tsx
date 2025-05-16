@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Button } from "../components/ui/button";
 import { getStripeProductsWithPrices } from "../lib/stripeClient";
 import SubscribeButton from "../components/SubscribeButton";
-
+import Link from "next/link";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://localhost:3000";
 const siteName = process.env.NEXT_PUBLIC_SITENAME;
 
@@ -52,8 +52,12 @@ export default async function Home() {
           <h1 className="text-4xl md:text-5xl font-bold leading-tight">Pass Your Citizenship Test with Confidence</h1>
           <p className="text-lg text-muted-foreground max-w-xl">Practice with our comprehensive test platform. Get instant feedback, track your progress, and prepare effectively for your citizenship exam.</p>
           <div className="flex gap-4 mt-2">
-            <Button size="lg">Start Practicing Now</Button>
-            <Button variant="outline" size="lg">View Plans</Button>
+            <Button size="lg">
+              <Link href="/register">Start Practicing Now</Link>
+            </Button>
+            <Button variant="outline" size="lg">
+              <Link href="#pricing">View Plans</Link>
+            </Button>
           </div>
         </div>
         <div className="flex-1 flex justify-center">
@@ -112,7 +116,7 @@ export default async function Home() {
       </section>
 
       {/* Pricing Section */}
-      <section className="bg-card py-16 px-8">
+      <section className="bg-card py-16 px-8" id="pricing">
         <h2 className="text-2xl font-bold text-center mb-10">Simple, Transparent Pricing</h2>
         <p className="text-center text-muted-foreground mb-8">Choose the plan that works for you</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -153,8 +157,12 @@ export default async function Home() {
         <h2 className="text-2xl font-bold mb-4">Ready to Become a Citizen?</h2>
         <p className="text-muted-foreground mb-6">Start practicing today and pass your citizenship test with confidence</p>
         <div className="flex flex-col md:flex-row gap-4 justify-center">
-          <Button size="lg">Get Started</Button>
-          <Button variant="outline" size="lg">Contact Us</Button>
+          <Button size="lg">
+            <Link href="/register">Get Started</Link>
+          </Button>
+          <Button variant="outline" size="lg">
+            <Link href="/contact">Contact Us</Link>
+          </Button>
         </div>
       </section>
     </div>
