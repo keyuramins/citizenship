@@ -1,6 +1,5 @@
 import { getStripeProductsWithPrices } from "../../lib/stripeClient";
-import dynamic from "next/dynamic";
-const SubscriptionManagement = dynamic(() => import("../../components/dashboard/SubscriptionManagement"), { ssr: false });
+import SubscriptionManagement from "../../components/dashboard/SubscriptionManagement";
 
 export default async function SubscriptionPage() {
   const products = await getStripeProductsWithPrices();
