@@ -4,6 +4,7 @@ import PracticeTestClient from "../../../../components/tests/PracticeTestClient"
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "../../../../lib/supabaseClient";
 import { getStripeProductsWithPrices } from "../../../../lib/stripeClient";
+import { shuffle } from "../../../../lib/testUtils";
 
 export default async function TestPage({ params }: { params: Promise<{ type: string; testId: string }> }) {
   const { type, testId } = await params;
@@ -19,8 +20,8 @@ export default async function TestPage({ params }: { params: Promise<{ type: str
   if (isNaN(idx) || idx < 0 || idx >= tests.length) {
     notFound();
   }
-
-  let questions = tests[idx];
+  // Shuffle the questions if the test is randomized
+  let questions = type === "random" ? shuffle(tests[idx]) : tests[idx];
 
   // Server-side: check subscription status
   const supabase = await createSupabaseServerClient();
