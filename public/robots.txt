@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: /
 
-Sitemap: https://yourdomain.com/api/sitemap.xml 
+Sitemap: https://passcitizenshiptest.com.au/sitemap.xml 
