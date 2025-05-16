@@ -116,19 +116,33 @@ export default async function Home() {
         <h2 className="text-2xl font-bold text-center mb-10">Simple, Transparent Pricing</h2>
         <p className="text-center text-muted-foreground mb-8">Choose the plan that works for you</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Free Card */}
+          <div className="border rounded-lg p-6 bg-card flex flex-col justify-between">
+            <div>
+              <h2 className="text-xl font-semibold mb-2">Free</h2>
+              <p className="mb-4 text-muted-foreground">Access the first 5 questions of 5 practice tests. No credit card required.</p>
+              <div className="text-lg font-bold mb-4">$0 / forever</div>
+            </div>
+            <Button asChild className="w-full mt-auto">
+              <a href="/register">Sign Up</a>
+            </Button>
+          </div>
+          {/* Premium Card(s) */}
           {products.map((product: any) => (
-            <div key={product.id} className="border rounded-lg p-6 bg-card">
-              <h2 className="text-xl font-semibold mb-2">{product.name}</h2>
-              <p className="mb-4 text-muted-foreground">{product.description}</p>
-              {product.prices.map((price: any) => (
-                <div key={price.id} className="mb-2">
-                  <div className="text-lg font-bold">
-                    {price.unit_amount && (price.unit_amount / 100).toLocaleString(undefined, { style: 'currency', currency: price.currency.toUpperCase() })}
-                    {price.recurring ? ` / ${price.recurring.interval}` : ""}
+            <div key={product.id} className="border rounded-lg p-6 bg-card flex flex-col justify-between">
+              <div>
+                <h2 className="text-xl font-semibold mb-2">{product.name}</h2>
+                <p className="mb-4 text-muted-foreground">{product.description}</p>
+                {product.prices.map((price: any) => (
+                  <div key={price.id} className="mb-2">
+                    <div className="text-lg font-bold">
+                      {price.unit_amount && (price.unit_amount / 100).toLocaleString(undefined, { style: 'currency', currency: price.currency.toUpperCase() })}
+                      {price.recurring ? ` / ${price.recurring.interval}` : ""}
+                    </div>
                   </div>
-                  <SubscribeButton priceId={price.id} />
-                </div>
-              ))}
+                ))}
+              </div>
+              <SubscribeButton priceId={product.prices[0].id} />
             </div>
           ))}
         </div>

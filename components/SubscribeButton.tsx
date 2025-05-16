@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
 
-export default function SubscribeButton({ priceId }: { priceId: string }) {
+export default function SubscribeButton({ priceId, label }: { priceId: string; label?: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -31,7 +31,7 @@ export default function SubscribeButton({ priceId }: { priceId: string }) {
   return (
     <div>
       <Button onClick={handleSubscribe} disabled={loading} className="mt-2 w-full">
-        {loading ? "Redirecting..." : "Subscribe"}
+        {loading ? "Redirecting..." : (label || "Subscribe")}
       </Button>
       {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
     </div>

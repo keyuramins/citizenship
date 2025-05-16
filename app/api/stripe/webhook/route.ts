@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '../../../../lib/stripeClient';
 import { createSupabaseServerClient } from '../../../../lib/supabaseClient';
+import { randomBytes } from 'crypto';
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -18,15 +19,32 @@ export async function POST(req: NextRequest) {
     const session = event.data.object as any;
     const customerEmail = session.customer_email;
     const subscriptionId = session.subscription;
-    // Update Supabase user
+    const customerName = session.customer_details?.name || "";
+
     const supabase = await createSupabaseServerClient();
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('id, email, raw_user_meta_data')
-      .eq('email', customerEmail)
-      .single();
-    if (!error && user) {
-      const newMeta = { ...user.raw_user_meta_data, subscription: subscriptionId };
+    // Use Auth admin API to find user by email
+    const { data: users, error: listError } = await supabase.auth.admin.listUsers();
+    const user = users?.users?.find((u: any) => u.email === customerEmail);
+
+    if (!user) {
+      // User does not exist: create user
+      const randomPassword = randomBytes(12).toString('base64');
+      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+        email: customerEmail,
+        password: randomPassword,
+        email_confirm: true,
+        user_metadata: {
+          full_name: customerName,
+          subscription: subscriptionId,
+        },
+      });
+      if (!createError) {
+        // Send invite/password reset email
+        await supabase.auth.admin.inviteUserByEmail(customerEmail);
+      }
+    } else {
+      // User exists: update metadata
+      const newMeta = { ...user.user_metadata, subscription: subscriptionId };
       await supabase.auth.admin.updateUserById(user.id, { user_metadata: newMeta });
     }
   }

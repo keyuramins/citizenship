@@ -6,6 +6,7 @@ import { Timer } from "../Timer";
 import { Button } from "../ui/button";
 import { SocialShare } from "../SocialShare";
 import Rating from "./Rating";
+import SubscribeButton from "../SubscribeButton";
 
 interface Question {
   question: string;
@@ -17,7 +18,7 @@ interface Question {
 
 const TEST_DURATION = 45 * 60; // 45 minutes in seconds
 
-export default function PracticeTestClient({ questions, isPremium }: { questions: Question[]; isPremium: boolean }) {
+export default function PracticeTestClient({ questions, isPremium, upgradePriceId }: { questions: Question[]; isPremium: boolean; upgradePriceId?: string }) {
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<(string | undefined)[]>(Array(questions.length).fill(undefined));
   const [review, setReview] = useState<boolean[]>(Array(questions.length).fill(false));
@@ -114,6 +115,11 @@ export default function PracticeTestClient({ questions, isPremium }: { questions
               <span className="text-red-600 font-semibold">You Did Not Pass</span>
             )}
           </div>
+          {!isPremium && upgradePriceId && (
+            <div className="mb-4">
+              <SubscribeButton priceId={upgradePriceId} label="Upgrade Now" />
+            </div>
+          )}
           <SocialShare title="Citizenship Practice Test" link={typeof window !== 'undefined' ? window.location.href : ''} score={score} time={timeStr} />
           <Rating />
         </div>
