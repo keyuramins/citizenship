@@ -55,5 +55,5 @@ export async function generateRandomizedTests(): Promise<Test[]> {
       ...chunks.beliefs[i],
     ]);
   }
-  return tests;
+  return shuffle(tests);
 } 
