@@ -52,7 +52,7 @@ export default function PracticeTestsTabs({ sequentialTests, randomizedTests }: 
 
 function PracticeTestGrid({ tests, isPremium, type }: { tests: Test[]; isPremium: boolean; type: string }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
       {tests.map((test, i) => {
         const isFree = i < 5;
         const locked = !isPremium && !isFree;

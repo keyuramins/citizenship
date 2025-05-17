@@ -7,6 +7,8 @@ import { Button } from "../ui/button";
 import { SocialShare } from "../SocialShare";
 import Rating from "./Rating";
 import SubscribeButton from "../SubscribeButton";
+import { Bookmark } from "lucide-react";
+
 
 interface Question {
   question: string;
@@ -18,7 +20,7 @@ interface Question {
 
 const TEST_DURATION = 45 * 60; // 45 minutes in seconds
 
-export default function PracticeTestClient({ questions, isPremium, upgradePriceId }: { questions: Question[]; isPremium: boolean; upgradePriceId?: string }) {
+export default function PracticeTestClient({ questions, isPremium, upgradePriceId, testId }: { questions: Question[]; isPremium: boolean; upgradePriceId?: string; testId: string | number; }) {
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<(string | undefined)[]>(Array(questions.length).fill(undefined));
   const [review, setReview] = useState<boolean[]>(Array(questions.length).fill(false));
@@ -129,69 +131,77 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
 
   return (
     <div className="flex items-center justify-center min-h-screen">
-      <div className="w-full max-w-md p-6 bg-card rounded shadow">
+      <div className="w-full max-w-5xl p-5 bg-card rounded shadow">
         <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
           <div>
-            <div className="text-lg font-bold">Question {current + 1} of {questions.length}</div>
-            <div className="text-sm text-orange-400 font-semibold mb-1">{questions[current].category === "values" ? "Australian Values Question" : null}</div>
+            <h1 className="text-3xl font-bold">Practice Test {testId}</h1>
+            <p className="text-gray-400">Answer all questions to complete the test</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 border border-gray-600 rounded-md p-2">
             <Timer seconds={timeLeft} />
           </div>
         </div>
-        <div className="mb-4">
-          <QuestionCard
-            question={questions[current].question}
-            options={questions[current].options}
-            onAnswer={handleAnswer}
-            selectedOption={answers[current]}
-            correctOption={answers[current] ? questions[current].answer : undefined}
-            explanation={questions[current].explanation}
-          />
+        <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+        <div className="text-lg font-bold">Question {current + 1} of {questions.length}</div>
+            {questions[current].category === "values" && (
+              <div className="text-sm text-orange-400 font-semibold mb-1">Australian Values Question</div>
+            )}
+          <Button variant={review[current] ? "default" : "outline"} onClick={handleReview} className="whitespace-nowrap flex items-center gap-1">
+            <Bookmark className="w-4 h-4" />
+            {review[current] ? "Marked for Review" : "Review Later"}
+          </Button>
         </div>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
-          <div className="flex gap-2">
-            <Button variant={review[current] ? "default" : "outline"} onClick={handleReview}>
-              {review[current] ? "Marked for Review" : "Review Later"}
-            </Button>
-          </div>
-          <div className="flex gap-2 flex-1 justify-center md:justify-end">
-            <Button
-              variant="outline"
-              onClick={() => setCurrent((c) => Math.max(0, c - 1))}
-              disabled={current === 0}
-            >
-              Previous
-            </Button>
-            {current < questions.length - 1 ? (
-              <Button
-                variant="outline"
-                onClick={() => setCurrent((c) => Math.min(questions.length - 1, c + 1))}
-              >
-                Next
-              </Button>
-            ) : null}
-            <Button
-              variant="secondary"
-              onClick={handleComplete}
-              disabled={answers.includes(undefined)}
-            >
-              Finish
-            </Button>
-          </div>
-          <div className="text-muted-foreground text-center md:text-right">
+        <QuestionCard
+          question={questions[current].question}
+          options={questions[current].options}
+          onAnswer={handleAnswer}
+          selectedOption={answers[current]}
+          correctOption={answers[current] ? questions[current].answer : undefined}
+          explanation={questions[current].explanation}
+        />
+        {/* Row 1: Previous / Answered / Next */}
+        <div className="flex items-center justify-between gap-2 mb-4 w-full">
+          <Button
+            variant="outline"
+            onClick={() => setCurrent((c) => Math.max(0, c - 1))}
+            disabled={current === 0}
+          >
+            Previous
+          </Button>
+          <div className="text-muted-foreground text-center flex-1">
             {answers.filter(a => a !== undefined).length} / {questions.length} answered
           </div>
+          <Button
+            variant="outline"
+            onClick={() => setCurrent((c) => Math.min(questions.length - 1, c + 1))}
+            disabled={current === questions.length - 1}
+          >
+            Next
+          </Button>
         </div>
-        <TestNavigation
-          total={questions.length}
-          current={current}
-          onNavigate={handleNavigate}
-          answers={answers}
-          review={review}
-          getNavColor={getNavColor}
-          isPremium={isPremium}
-        />
+        {/* Row 2: Pagination */}
+        <div className="flex justify-center mb-4 w-full">
+          <TestNavigation
+            total={questions.length}
+            current={current}
+            onNavigate={handleNavigate}
+            answers={answers}
+            review={review}
+            getNavColor={getNavColor}
+            isPremium={isPremium}
+          />
+        </div>
+        {/* Row 3: Exit / Finish */}
+        <div className="flex items-center justify-between mt-6 w-full">
+          <Button variant="outline" onClick={() => {/* handle exit logic here */}}>Exit Test</Button>
+          <Button
+            variant="secondary"
+            onClick={handleComplete}
+            disabled={answers.includes(undefined)}
+          >
+            Finish
+          </Button>
+        </div>
         {showToast && (
           <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-orange-600 text-white px-4 py-2 rounded shadow z-50">
             Upgrade to Premium to unlock all questions!

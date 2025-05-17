@@ -37,8 +37,7 @@ export default async function TestPage({ params }: { params: Promise<{ type: str
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Practice Test {testId}</h1>
-      <PracticeTestClient questions={questions} isPremium={isPremium} upgradePriceId={upgradePriceId} />
+      <PracticeTestClient questions={questions} isPremium={isPremium} upgradePriceId={upgradePriceId} testId={testId} />
     </div>
   );
 } 

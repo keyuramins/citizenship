@@ -6,7 +6,7 @@ interface QuestionCardProps {
   correctOption?: string;
   explanation?: string;
 }
-
+//This only shows the question, options and explanation. It does not show the timer or the navigation buttons.
 export function QuestionCard({ question, options, onAnswer, selectedOption, correctOption, explanation }: QuestionCardProps) {
   return (
     <div className="mb-6">
@@ -15,11 +15,22 @@ export function QuestionCard({ question, options, onAnswer, selectedOption, corr
         {options.map(option => (
           <button
             key={option}
-            className={`w-full p-2 rounded border text-left ${selectedOption === option ? (option === correctOption ? 'bg-green-100 border-green-400' : 'bg-red-100 border-red-400') : 'border-gray-300'}`}
+            className={`w-full p-2 rounded border flex items-center text-left gap-3 ${selectedOption === option ? (option === correctOption ? 'bg-green-900 border-green-600' : 'bg-red-900 border-red-600') : 'border-gray-600'}`}
             onClick={() => onAnswer(option)}
             disabled={!!selectedOption}
           >
-            {option}
+            <span className="flex items-center justify-center w-4 h-4 rounded-full border-2"
+              style={{
+                borderColor: selectedOption === option ? (option === correctOption ? '#22c55e' : '#ef4444') : '#d1d5db',
+                background: selectedOption === option ? (option === correctOption ? '#bbf7d0' : '#fecaca') : 'transparent',
+              }}
+              aria-hidden="true"
+            >
+              {selectedOption === option ? (
+                <span className={`block w-3 h-3 rounded-full ${option === correctOption ? 'bg-green-900 border border-green-600' : 'bg-red-900 border border-red-600'}`}></span>
+              ) : null}
+            </span>
+            <span>{option}</span>
           </button>
         ))}
       </div>
