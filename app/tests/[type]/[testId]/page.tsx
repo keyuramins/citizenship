@@ -1,12 +1,17 @@
+import { createSupabaseServerClient } from '../../../../lib/supabaseClient';
+import { redirect } from 'next/navigation';
 import { generateSequentialTests } from "../../../../lib/generateSequentialTests";
 import { generateRandomizedTests } from "../../../../lib/generateRandomizedTests";
 import PracticeTestClient from "../../../../components/tests/PracticeTestClient";
 import { notFound } from "next/navigation";
-import { createSupabaseServerClient } from "../../../../lib/supabaseClient";
 import { getStripeProductsWithPrices } from "../../../../lib/stripeClient";
 import { shuffle } from "../../../../lib/testUtils";
 
 export default async function TestPage({ params }: { params: Promise<{ type: string; testId: string }> }) {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
   const { type, testId } = await params;
   let tests;
   if (type === "sequential") {
@@ -24,8 +29,6 @@ export default async function TestPage({ params }: { params: Promise<{ type: str
   let questions = type === "random" ? shuffle(tests[idx]) : tests[idx];
 
   // Server-side: check subscription status
-  const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
   const isPremium = !!user?.user_metadata?.subscription;
   if (!isPremium) {
     questions = questions.slice(0, 5); // Only first 5 questions for free users

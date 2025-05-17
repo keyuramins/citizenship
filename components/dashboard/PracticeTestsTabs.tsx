@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../components/ui/tabs";
 import { Button } from "../../components/ui/button";
 import Link from "next/link";
+import SubscribeButton from "../SubscribeButton";
 
 interface TestQuestion {
   question: string;
@@ -17,6 +18,7 @@ type Test = TestQuestion[];
 interface PracticeTestsTabsProps {
   sequentialTests: Test[];
   randomizedTests: Test[];
+  upgradePriceId: string;
 }
 
 // Dummy user access logic (replace with real Supabase logic)
@@ -30,16 +32,21 @@ function useIsPremiumUser() {
   return isPremium;
 }
 
-export default function PracticeTestsTabs({ sequentialTests, randomizedTests }: PracticeTestsTabsProps) {
+export default function PracticeTestsTabs({ sequentialTests, randomizedTests, upgradePriceId }: PracticeTestsTabsProps) {
   const [tab, setTab] = useState("sequential");
   const isPremium = useIsPremiumUser();
 
   return (
     <Tabs value={tab} onValueChange={setTab} className="w-full">
-      <TabsList className="mb-6">
-        <TabsTrigger value="sequential">Sequential</TabsTrigger>
-        <TabsTrigger value="random">Random</TabsTrigger>
-      </TabsList>
+      <div className="flex items-center justify-between mb-6">
+        <TabsList>
+          <TabsTrigger value="sequential">Sequential</TabsTrigger>
+          <TabsTrigger value="random">Random</TabsTrigger>
+        </TabsList>
+        {!isPremium && (
+          <SubscribeButton priceId={upgradePriceId} label="Upgrade Now" />
+        )}
+      </div>
       <TabsContent value="sequential">
         <PracticeTestGrid tests={sequentialTests} isPremium={isPremium} type="sequential" />
       </TabsContent>
@@ -60,7 +67,7 @@ function PracticeTestGrid({ tests, isPremium, type }: { tests: Test[]; isPremium
           <div key={i} className="border rounded-lg p-4 bg-card relative">
             <div className="font-semibold text-lg mb-1">Practice Test {i + 1}</div>
             <div className="text-sm text-muted-foreground mb-4">
-              Citizenship practice test with 20 randomized questions.
+              {type === "sequential" ? "Citizenship practice test with 20 sequential questions." : "Citizenship practice test with 20 randomized questions."}
             </div>
             {locked ? (
               <Button variant="secondary" disabled className="w-full">Premium Only</Button>

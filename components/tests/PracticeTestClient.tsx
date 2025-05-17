@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { QuestionCard } from "./QuestionCard";
 import TestNavigation from "../../components/tests/TestNavigation";
 import { Timer } from "../Timer";
@@ -8,6 +8,8 @@ import { SocialShare } from "../SocialShare";
 import Rating from "./Rating";
 import SubscribeButton from "../SubscribeButton";
 import { Bookmark } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "../ui/dialog";
+import { toast } from "sonner";
 
 
 interface Question {
@@ -27,6 +29,7 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
   const [completed, setCompleted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(TEST_DURATION);
   const [showToast, setShowToast] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Timer logic
@@ -45,13 +48,21 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
     return () => clearInterval(timerRef.current!);
   }, [completed]);
 
-  // Color coding for navigation
-  const getNavColor = (idx: number) => {
+  // Color coding for navigation (useCallback for reactivity)
+  const getNavColor = useCallback((idx: number) => {
     if (review[idx]) return "orange";
     if (answers[idx] === undefined) return "outline";
-    if (answers[idx] === questions[idx].answer) return "green";
+    if (
+      answers[idx]?.trim().toLowerCase() === questions[idx].answer.trim().toLowerCase()
+    ) return "green";
     return "red";
-  };
+  }, [answers, review, questions]);
+
+  // Build navColors array for all 20 buttons
+  const navColors = Array.from({ length: 20 }).map((_, idx) => {
+    if (idx >= questions.length) return "outline";
+    return getNavColor(idx);
+  });
 
   // Answer selection
   const handleAnswer = (option: string) => {
@@ -59,6 +70,11 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
     setAnswers((prev) => {
       const next = [...prev];
       next[current] = option;
+      return next;
+    });
+    setReview((prev) => {
+      const next = [...prev];
+      next[current] = false;
       return next;
     });
   };
@@ -82,10 +98,37 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
     setCurrent(idx);
   };
 
-  // Complete test
-  const handleComplete = () => {
+  // Complete test (with review check and confirmation)
+  const handleSubmit = () => {
+    const unanswered = answers
+      .map((a, i) => (a === undefined ? i + 1 : null))
+      .filter((n) => n !== null);
+    const reviewQuestions = review
+      .map((r, i) => (r ? i + 1 : null))
+      .filter((n) => n !== null);
+
+    if (unanswered.length > 0) {
+      toast(
+        `Unanswered questions: ${unanswered.join(", ")}`,
+        { description: "Please answer all questions before submitting.", position: "top-center" }
+      );
+      return;
+    }
+    if (reviewQuestions.length > 0) {
+      toast(
+        `Questions in review: ${reviewQuestions.join(", ")}`,
+        { description: "You have questions marked for review.", position: "top-center" }
+      );
+    }
+    setShowConfirm(true);
+  };
+  const handleConfirmSubmit = () => {
+    setShowConfirm(false);
     setCompleted(true);
     clearInterval(timerRef.current!);
+  };
+  const handleCancelSubmit = () => {
+    setShowConfirm(false);
   };
 
   // Pass/fail logic
@@ -101,6 +144,18 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
   const score = Math.round((totalCorrect / questions.length) * 100);
   const timeUsed = TEST_DURATION - timeLeft;
   const timeStr = new Date(timeUsed * 1000).toISOString().substr(11, 8);
+
+  // Warn user on reload/navigation if there are unanswered questions
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (answers.some(a => a === undefined)) {
+        event.preventDefault();
+        event.returnValue = ""; // Required for Chrome
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [answers]);
 
   if (completed) {
     return (
@@ -132,7 +187,7 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="w-full max-w-5xl p-5 bg-card rounded shadow">
-        <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+        <div className="flex justify-between items-center mb-4 px-2 flex-wrap gap-2">
           <div>
             <h1 className="text-3xl font-bold">Practice Test {testId}</h1>
             <p className="text-gray-400">Answer all questions to complete the test</p>
@@ -141,6 +196,7 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
             <Timer seconds={timeLeft} />
           </div>
         </div>
+        <div className="w-full m-2 p-5 h-full border border-border rounded">
         <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
         <div className="text-lg font-bold">Question {current + 1} of {questions.length}</div>
             {questions[current].category === "values" && (
@@ -182,31 +238,42 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
         {/* Row 2: Pagination */}
         <div className="flex justify-center mb-4 w-full">
           <TestNavigation
-            total={questions.length}
+            total={20}
             current={current}
             onNavigate={handleNavigate}
-            answers={answers}
-            review={review}
-            getNavColor={getNavColor}
+            navColors={navColors}
             isPremium={isPremium}
           />
         </div>
-        {/* Row 3: Exit / Finish */}
+        {/* Row 3: Exit / Submit */}
         <div className="flex items-center justify-between mt-6 w-full">
           <Button variant="outline" onClick={() => {/* handle exit logic here */}}>Exit Test</Button>
           <Button
             variant="secondary"
-            onClick={handleComplete}
-            disabled={answers.includes(undefined)}
+            onClick={handleSubmit}
           >
-            Finish
+            Submit
           </Button>
         </div>
+        {/* Confirmation Dialog */}
+        <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Submit Test?</DialogTitle>
+            </DialogHeader>
+            <div>Are you sure you want to submit your test? You won't be able to change your answers after submission.</div>
+            <DialogFooter>
+              <Button variant="outline" onClick={handleCancelSubmit}>Cancel</Button>
+              <Button variant="secondary" onClick={handleConfirmSubmit}>Confirm</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         {showToast && (
           <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-orange-600 text-white px-4 py-2 rounded shadow z-50">
             Upgrade to Premium to unlock all questions!
           </div>
         )}
+        </div>
       </div>
     </div>
   );
