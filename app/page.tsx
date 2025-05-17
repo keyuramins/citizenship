@@ -4,6 +4,7 @@ import { Button } from "../components/ui/button";
 import { getStripeProductsWithPrices } from "../lib/stripeClient";
 import SubscribeButton from "../components/SubscribeButton";
 import Link from "next/link";
+import { createSupabaseServerClient } from "../lib/supabaseClient";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://localhost:3000";
 const siteName = process.env.NEXT_PUBLIC_SITENAME;
 
@@ -43,6 +44,10 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const isPremium = !!user?.user_metadata?.subscription;
+  const isLoggedIn = !!user;
   const products = await getStripeProductsWithPrices();
   return (
     <div className="flex flex-col bg-background text-foreground">
@@ -127,9 +132,15 @@ export default async function Home() {
               <p className="mb-4 text-muted-foreground">Access the first 5 questions of 5 practice tests. No credit card required.</p>
               <div className="text-lg font-bold mb-4">$0 / forever</div>
             </div>
-            <Button asChild className="w-full mt-auto">
-              <a href="/register">Sign Up</a>
-            </Button>
+            {isPremium ? (
+              <Button className="w-full mt-auto" disabled>
+                Current Plan
+              </Button>
+            ) : (
+              <Button asChild className="w-full mt-auto">
+                <a href="/register">Sign Up</a>
+              </Button>
+            )}
           </div>
           {/* Premium Card(s) */}
           {products.map((product: any) => (
@@ -146,7 +157,10 @@ export default async function Home() {
                   </div>
                 ))}
               </div>
-              <SubscribeButton priceId={product.prices[0].id} />
+              <SubscribeButton
+                priceId={product.prices[0].id}
+                label={isPremium ? "You're Premium" : "Subscribe"}
+              />
             </div>
           ))}
         </div>

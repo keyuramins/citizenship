@@ -20,6 +20,30 @@ export default function ForgotPasswordForm() {
       setLoading(false);
       return;
     }
+    // Check provider first
+    try {
+      const res = await fetch("/api/check-provider", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) {
+        setError("No account found with that email.");
+        setLoading(false);
+        return;
+      }
+      const { provider } = await res.json();
+      if (provider !== "email") {
+        setError("This account uses Google login. Please use 'Login with Google' to sign in.");
+        setLoading(false);
+        return;
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+      setLoading(false);
+      return;
+    }
+    // If provider is email, proceed with reset
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
