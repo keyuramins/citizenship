@@ -28,13 +28,12 @@ export default function SubscriptionManagement({ upgradePriceId }: { upgradePric
   }, []);
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-card rounded shadow mt-8">
+    <div className="w-full max-w-xl mx-auto p-6 bg-card rounded shadow mt-8">
       <h2 className="text-xl font-bold mb-4">Manage Subscription</h2>
       {loading && <div>Loading...</div>}
       {error && <div className="text-red-500 mb-2">{error}</div>}
-      <div className="mb-4">
-        <div className="font-semibold">Current Plan:</div>
-        <div>{subscription ? "Premium" : "Free"}</div>
+      <div className="font-semibold my-5">Current Plan:&nbsp;
+        <span className="text-xl font-semibold">{subscription ? "Premium" : "Free"}</span>
       </div>
       {!subscription ? (
         <SubscribeButton priceId={upgradePriceId} label="Upgrade Now" />

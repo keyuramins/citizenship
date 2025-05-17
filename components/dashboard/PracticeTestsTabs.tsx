@@ -64,13 +64,13 @@ function PracticeTestGrid({ tests, isPremium, type }: { tests: Test[]; isPremium
         const isFree = i < 5;
         const locked = !isPremium && !isFree;
         return (
-          <div key={i} className="border rounded-lg p-4 bg-card relative">
+          <div key={i} className="border border-border rounded-lg p-4 bg-card relative">
             <div className="font-semibold text-lg mb-1">Practice Test {i + 1}</div>
             <div className="text-sm text-muted-foreground mb-4">
               {type === "sequential" ? "Citizenship practice test with 20 sequential questions." : "Citizenship practice test with 20 randomized questions."}
             </div>
             {locked ? (
-              <Button variant="secondary" disabled className="w-full">Premium Only</Button>
+              <Button variant="secondary" disabled className="w-full border border-gray-500">Premium Only</Button>
             ) : (
               <Button asChild className="w-full">
                 <Link href={`/tests/${type}/${i + 1}`}>Start Test</Link>

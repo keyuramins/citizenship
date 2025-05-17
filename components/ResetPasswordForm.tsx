@@ -49,8 +49,10 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
-      <div className="w-full max-w-sm p-8 bg-card rounded-xl shadow border border-border">
+      <div className="w-full max-w-md p-8 bg-card rounded-xl shadow border border-border">
         <h1 className="text-2xl font-bold mb-6 text-foreground">Reset Password</h1>
+        <p className="text-muted-foreground text-sm mb-4">Enter your new password below.</p>
+        <p className="text-muted-foreground text-sm mb-4">Your new password must be different from your previous password. Must be at least 12 characters long.</p>
         {showForm ? (
           <form onSubmit={handleReset}>
             <input

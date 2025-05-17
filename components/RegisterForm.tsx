@@ -77,7 +77,7 @@ export default function RegisterForm() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
-      <form onSubmit={handleRegister} className="w-full max-w-sm p-8 rounded-xl shadow bg-card border border-border">
+      <form onSubmit={handleRegister} className="w-full max-w-md p-8 rounded-xl shadow bg-card border border-border">
         <h1 className="text-2xl font-bold mb-6 text-foreground">Register</h1>
         <div className="mb-4">
           <input
@@ -127,10 +127,12 @@ export default function RegisterForm() {
         >
           {loading ? "Registering..." : "Register"}
         </Button>
+        <br />
+        <p className="text-center text-muted-foreground text-sm my-3">Or</p>
         <Button
           type="button"
           onClick={handleGoogleLogin}
-          className="w-full mb-2 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          className="w-full mb-2 bg-foreground text-background hover:bg-foreground/90"
           disabled={loading}
           variant="secondary"
         >

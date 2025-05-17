@@ -14,7 +14,7 @@ export async function middleware(request: NextRequest) {
   const isProtected = PROTECTED_PATHS.some((path) => pathname.startsWith(path));
   if (!isProtected) return NextResponse.next();
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient({ allowSetCookies: false });
   const {
     data: { user },
   } = await supabase.auth.getUser();

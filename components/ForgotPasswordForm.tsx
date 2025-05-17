@@ -57,7 +57,7 @@ export default function ForgotPasswordForm() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
-      <form onSubmit={handleForgotPassword} className="w-full max-w-sm p-8 rounded-xl shadow bg-card border border-border">
+      <form onSubmit={handleForgotPassword} className="w-full max-w-md p-8 rounded-xl shadow bg-card border border-border">
         <h1 className="text-2xl font-bold mb-6 text-foreground">Forgot Password</h1>
         <div className="mb-4">
           <label htmlFor="email" className="block mb-1 text-foreground font-medium">Email</label>

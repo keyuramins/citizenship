@@ -102,15 +102,15 @@ export default function Profile() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <Card className="max-w-md mx-auto mt-8">
+    <Card className="w-full max-w-2xl mx-auto mt-8">
       <CardHeader>
-        <CardTitle>Profile</CardTitle>
+        <CardTitle className="text-2xl font-bold">Profile</CardTitle>
       </CardHeader>
       <CardContent>
         {error && <Alert variant="destructive" className="mb-4">{error}</Alert>}
         {success && <Alert variant="default" className="mb-4">{success}</Alert>}
-        <div className="mb-4">
-          <Label htmlFor="displayName">Display Name</Label>
+        <div className="mb-4 border border-border rounded p-4">
+          <Label htmlFor="displayName" className="text-xl font-semibold">Display Name</Label>
           <Input
             id="displayName"
             className="mt-1"
@@ -122,8 +122,8 @@ export default function Profile() {
             {saving ? "Saving..." : "Save"}
           </Button>
         </div>
-        <div className="mb-4">
-          <Label htmlFor="email">Email</Label>
+        <div className="mb-4 border border-border rounded p-4">
+          <Label htmlFor="email" className="text-xl font-semibold">Email</Label>
           <Input
             id="email"
             className="mt-1"
@@ -131,29 +131,30 @@ export default function Profile() {
             disabled
           />
         </div>
-        <div className="mb-4">
+        <div className="mb-4 border border-border rounded p-4">
           {/* Only show password change for email/password users */}
           {user?.raw_app_meta_data?.provider === 'google' ? (
             <div className="text-muted-foreground text-sm">You signed up with Google. Password change is not available for Google login accounts.</div>
           ) : user?.app_metadata?.provider === 'email' && (
-            <div className="border rounded p-4">
-              <div className="font-semibold mb-2">Change Password</div>
+            <div className="border border-border rounded p-4">
+              <div className="text-xl font-semibold mb-2">Change Password</div>
+              <p className="text-muted-foreground text-sm mb-3">Must be at least 12 characters long.</p>
               <div className="mb-2">
-                <Label htmlFor="newPassword">New Password</Label>
+                <Label htmlFor="newPassword" className="text-lg font-semibold">New Password</Label>
                 <Input
                   id="newPassword"
                   type="password"
-                  className="mt-1"
+                  className="mt-2"
                   value={newPassword}
                   onChange={e => setNewPassword(e.target.value)}
                 />
               </div>
-              <div className="mb-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="my-3">
+                <Label htmlFor="confirmPassword" className="text-lg font-semibold">Confirm Password</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
-                  className="mt-1"
+                  className="mt-2"
                   value={confirmPassword}
                   onChange={e => setConfirmPassword(e.target.value)}
                 />

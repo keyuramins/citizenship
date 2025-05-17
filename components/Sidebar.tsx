@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Home, BookOpen, User, CreditCard } from "lucide-react";
+import { Home, User, CreditCard } from "lucide-react";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
-  { href: "/tests", label: "Practice Tests", icon: BookOpen },
   { href: "/profile", label: "Profile", icon: User },
   { href: "/subscription", label: "Subscription", icon: CreditCard },
 ];
