@@ -113,18 +113,33 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
 
     if (unanswered.length > 0) {
       toast(
-        `Unanswered questions: ${unanswered.join(", ")}`,
-        { description: "Please answer all questions before submitting.", position: "top-center" }
+        `${unanswered.length} Question${unanswered.length > 1 ? 's' : ''} Unanswered`,
+        { 
+          description: `Please answer question${unanswered.length > 1 ? 's' : ''} ${unanswered.join(", ")} before submitting.`,
+          position: "top-center",
+          duration: 5000
+        }
       );
+      // Navigate to the first unanswered question
+      setCurrent(unanswered[0] - 1);
       return;
     }
+
     if (reviewQuestions.length > 0) {
       toast(
-        `Questions in review: ${reviewQuestions.join(", ")}`,
-        { description: "You have questions marked for review.", position: "top-center" }
+        `${reviewQuestions.length} Question${reviewQuestions.length > 1 ? 's' : ''} Marked for Review`,
+        { 
+          description: `You have marked question${reviewQuestions.length > 1 ? 's' : ''} ${reviewQuestions.join(", ")} for review. You can still submit or review them.`,
+          position: "top-center",
+          duration: 5000
+        }
       );
+      setShowConfirm(true);
+      return;
     }
-    setShowConfirm(true);
+    
+    // If all questions are answered and none are marked for review, submit directly
+    handleConfirmSubmit();
   };
   const handleConfirmSubmit = () => {
     setShowConfirm(false);
@@ -175,25 +190,6 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
 
   // Intercept Next.js router navigation (push, replace, back)
   useEffect(() => {
-    // Patch router.push and router.replace to show dialog
-    const origPush = router.push;
-    const origReplace = router.replace;
-    (router as any).push = (url: string, ...args: any[]) => {
-      if (!completed) {
-        setShowExitConfirm(true);
-        setPendingExitUrl(url);
-        return;
-      }
-      return origPush.call(router, url, ...args);
-    };
-    (router as any).replace = (url: string, ...args: any[]) => {
-      if (!completed) {
-        setShowExitConfirm(true);
-        setPendingExitUrl(url);
-        return;
-      }
-      return origReplace.call(router, url, ...args);
-    };
     // Listen for browser back/forward
     const handlePopState = (event: PopStateEvent) => {
       if (!completed) {
@@ -204,11 +200,9 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
     };
     window.addEventListener('popstate', handlePopState);
     return () => {
-      (router as any).push = origPush;
-      (router as any).replace = origReplace;
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [completed, router]);
+  }, [completed]);
 
   const handleExit = () => {
     setShowExitConfirm(true);
@@ -340,6 +334,29 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
             <DialogFooter>
               <Button variant="outline" onClick={cancelExit}>Cancel</Button>
               <Button variant="destructive" onClick={confirmExit}>Exit</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        {/* Submit Confirmation Dialog */}
+        <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Submit Test?</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p>Are you sure you want to submit your test?</p>
+              <p className="text-muted-foreground mt-2">
+                You have answered {answers.filter(a => a !== undefined).length} out of {questions.length} questions.
+                {review.some(r => r) && (
+                  <span className="block mt-1 text-orange-400">
+                    Note: You have questions marked for review.
+                  </span>
+                )}
+              </p>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={handleCancelSubmit}>Continue Test</Button>
+              <Button onClick={handleConfirmSubmit}>Submit Test</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

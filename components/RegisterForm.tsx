@@ -29,6 +29,26 @@ export default function RegisterForm() {
       setLoading(false);
       return;
     }
+
+    // Check if email exists in Supabase
+    try {
+      const res = await fetch('/api/check-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const { exists } = await res.json();
+      if (exists) {
+        setError("This email is already registered. Please use a different email or ");
+        setLoading(false);
+        return;
+      }
+    } catch (err) {
+      setError("Could not verify email. Please try again later.");
+      setLoading(false);
+      return;
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -106,7 +126,20 @@ export default function RegisterForm() {
           className="w-full p-2 mb-4 border border-border rounded bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           required
         />
-        {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
+        {error && (
+          <div className="mb-4 text-red-600 text-sm flex flex-col items-center">
+            {error}
+            {error.includes('already registered') && (
+              <Button
+                className="mt-2"
+                onClick={() => router.push('/login')}
+                variant="secondary"
+              >
+                Login
+              </Button>
+            )}
+          </div>
+        )}
         {message && (
           <div className="mb-4 text-green-600 flex flex-col items-center">
             {message}
