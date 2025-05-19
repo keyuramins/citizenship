@@ -100,12 +100,12 @@ export default async function Home() {
       {/* Success Stories */}
       <section className="py-16 px-8">
         <h2 className="text-2xl font-bold text-center mb-10">Success Stories</h2>
-        <p className="text-center text-muted-foreground mb-8">See how CitizenPrep has helped others achieve their citizenship goals</p>
+        <p className="text-center text-muted-foreground mb-8">See how we helped others achieve their citizenship goals</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           <div className="border border-border rounded-lg p-6 bg-card">
             <div className="font-semibold mb-1">Sarah Johnson</div>
             <div className="text-xs text-muted-foreground mb-2">New Citizen</div>
-            <div className="text-sm text-muted-foreground">CitizenPrep helped me pass my test on the first try. The practice questions were almost identical to the real test!</div>
+            <div className="text-sm text-muted-foreground">This website helped me pass my test on the first try. The practice questions were almost identical to the real test!</div>
           </div>
           <div className="border border-border rounded-lg p-6 bg-card">
             <div className="font-semibold mb-1">Michael Chen</div>

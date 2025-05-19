@@ -52,7 +52,7 @@ export default function Sidebar() {
   return (
     <ShadSidebar collapsible className="min-h-screen py-4 px-2">
       <SidebarHeader className="flex items-center justify-between px-2">
-        <span className={cn("font-bold text-lg tracking-tight transition-all", !open && "opacity-0 w-0 overflow-hidden")}>CitizenPrep</span>
+        <span className={cn("font-bold text-lg tracking-tight transition-all", !open && "opacity-0 w-0 overflow-hidden")}>{process.env.NEXT_PUBLIC_SITENAME}</span>
         <SidebarTrigger className="ml-auto" />
       </SidebarHeader>
       <SidebarContent>

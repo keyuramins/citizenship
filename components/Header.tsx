@@ -41,7 +41,7 @@ export default function Header() {
   return (
     <header className="w-full border-b shadow-sm px-4 py-2 flex items-center justify-between bg-background text-foreground">
       <div className="font-bold text-lg cursor-pointer">
-        <Link href="/">Citizenship Practice</Link>
+        <Link href="/">{process.env.NEXT_PUBLIC_SITENAME}</Link>
       </div>
       <div className="flex items-center gap-2">
         <ThemeSwitcher />

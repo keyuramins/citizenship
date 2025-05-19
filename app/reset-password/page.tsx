@@ -7,14 +7,14 @@ const siteName = process.env.NEXT_PUBLIC_SITENAME;
 
 export const metadata: Metadata = {
   title: `Reset Password | ${siteName}`,
-  description: "Set a new password for your citizenship practice test account.",
+  description: "Set a new password for your account.",
   robots: "noindex, nofollow",
   alternates: {
     canonical: `${siteUrl}/reset-password`,
   },
   openGraph: {
     title: `Reset Password | ${siteName}`,
-    description: "Set a new password for your citizenship practice test account.",
+    description: "Set a new password for your account.",
     url: `${siteUrl}/reset-password`,
     siteName,
     images: [
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: `Reset Password | ${siteName}`,
-    description: "Set a new password for your citizenship practice test account.",
+    description: "Set a new password for your account.",
     images: [`${siteUrl}/og-image.png`],
     site: siteName,
   },
