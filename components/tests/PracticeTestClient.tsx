@@ -156,9 +156,27 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
     const idx = questions.indexOf(q);
     return answers[idx] === q.answer;
   }).length;
+  const governmentQuestions = questions.filter(q => q.category === "government");
+  const governmentCorrect = governmentQuestions.filter((q, i) => {
+    const idx = questions.indexOf(q);
+    return answers[idx] === q.answer;
+  }).length;
+  const beliefsQuestions = questions.filter(q => q.category === "beliefs");
+  const beliefsCorrect = beliefsQuestions.filter((q, i) => {
+    const idx = questions.indexOf(q);
+    return answers[idx] === q.answer;
+  }).length;
+  const peoplesQuestions = questions.filter(q => q.category === "peoples");
+  const peoplesCorrect = peoplesQuestions.filter((q, i) => {
+    const idx = questions.indexOf(q);
+    return answers[idx] === q.answer;
+  }).length;
   const totalCorrect = questions.filter((q, i) => answers[i] === q.answer).length;
   const passed = valuesCorrect === 5 && (totalCorrect / questions.length) >= 0.75;
-
+  const valuesScore = Math.round((valuesCorrect / valuesQuestions.length) * 100);
+  const governmentScore = Math.round((governmentCorrect / governmentQuestions.length) * 100);
+  const beliefsScore = Math.round((beliefsCorrect / beliefsQuestions.length) * 100);
+  const peoplesScore = Math.round((peoplesCorrect / peoplesQuestions.length) * 100);
   // Social share data
   const score = Math.round((totalCorrect / questions.length) * 100);
   const timeUsed = TEST_DURATION - timeLeft;
@@ -224,25 +242,64 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
   if (completed) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="w-full max-w-md p-6 bg-card rounded shadow">
+        <div className="w-full max-w-3xl mx-auto p-6 bg-card rounded shadow">
           <h2 className="text-2xl font-bold mb-4">Test Complete</h2>
-          <div className="mb-2">Score: <span className="font-semibold">{totalCorrect} / {questions.length}</span> ({score}%)</div>
-          <div className="mb-2">Australian Values Questions Correct: <span className="font-semibold">{valuesCorrect} / 5</span></div>
-          <div className="mb-2">Time Used: <span className="font-mono">{timeStr}</span></div>
-          <div className="mb-4">
+          <div className="mb-4 border border-border rounded-md p-4">
+            <p>You answered {totalCorrect} out of {questions.length} questions correctly.</p>
+            <span className="font-semibold">Score:</span>&nbsp;
+            <span className="font-semibold">{score}%</span>
+            <div>
             {passed ? (
               <span className="text-green-600 font-semibold">You Passed!</span>
             ) : (
               <span className="text-red-600 font-semibold">You Did Not Pass</span>
             )}
           </div>
-          {!isPremium && upgradePriceId && (
-            <div className="mb-4">
-              <SubscribeButton priceId={upgradePriceId} label="Upgrade Now" />
-            </div>
-          )}
-          <SocialShare title="Citizenship Practice Test" link={typeof window !== 'undefined' ? window.location.href : ''} score={score} time={timeStr} />
-          <Rating />
+          </div>
+          <div className="mb-4 border border-border rounded-md p-4">
+          <div className="mb-2">
+            <span className="font-semibold">Australian Values Questions</span>&nbsp;&#8209;&nbsp;
+            <span>Correct:</span>&nbsp;
+            <span className="font-semibold">{valuesCorrect} / {valuesQuestions.length}</span>&nbsp;&#8209;&nbsp;
+            <span className="font-semibold">{valuesScore}%</span>
+          </div>
+          <div className="mb-2">
+            <span className="font-semibold">Australian Government Questions</span>&nbsp;&#8209;&nbsp;
+            <span>Correct:</span>&nbsp;
+            <span className="font-semibold">{governmentCorrect} / {governmentQuestions.length}</span>&nbsp;&#8209;&nbsp;
+            <span className="font-semibold">{governmentScore}%</span>
+          </div>
+          <div className="mb-2">
+            <span className="font-semibold">Australian Beliefs Questions</span>&nbsp;&#8209;&nbsp;
+            <span>Correct:</span>&nbsp;
+            <span className="font-semibold">{beliefsCorrect} / {beliefsQuestions.length}</span>&nbsp;&#8209;&nbsp;
+            <span className="font-semibold">{beliefsScore}%</span>
+          </div>
+          <div className="mb-2">
+            <span className="font-semibold">Australian Peoples Questions</span>&nbsp;&#8209;&nbsp;
+            <span>Correct:</span>&nbsp;
+            <span className="font-semibold">{peoplesCorrect} / {peoplesQuestions.length}</span>&nbsp;&#8209;&nbsp;
+            <span className="font-semibold">{peoplesScore}%</span>
+          </div>
+          <div className="mb-2">
+            <span className="font-semibold">Time Used:</span>&nbsp; 
+            <span className="font-mono">{timeStr}</span>
+          </div>
+          </div>
+          <div className="mb-4 border border-border rounded-md p-4">
+            {!isPremium && upgradePriceId && (
+              <div className="mb-4">
+                <p>Upgrade to Premium to unlock all questions!</p>
+                <SubscribeButton priceId={upgradePriceId} label="Upgrade Now" />
+              </div>
+            )}
+          </div>
+          <div className="mb-4 border border-border rounded-md p-4">
+            <SocialShare title="Citizenship Practice Test" link={typeof window !== 'undefined' ? window.location.href : ''} score={score} time={timeStr} />
+          </div>
+          <div className="mb-4 border border-border rounded-md p-4">
+            <Rating />
+          </div>
         </div>
       </div>
     );
@@ -362,7 +419,7 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
         </Dialog>
         {showToast && (
           <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-orange-600 text-white px-4 py-2 rounded shadow z-50">
-            Upgrade to Premium to unlock all questions!
+            Upgrade to Premium to unlock all questions and get an appropriate breakdown of your test results!
           </div>
         )}
         </div>
