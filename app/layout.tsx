@@ -2,7 +2,6 @@ import { Inter } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import "./globals.css";
 import ClientThemeProvider from "../components/ClientThemeProvider";
-import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Toaster } from "@/components/ui/sonner";
 import ProtectedLayout from "../components/ProtectedLayout";
@@ -35,7 +34,6 @@ export default function RootLayout({
         <Toaster />
         <ClientThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <NextTopLoader color="#2563eb" showSpinner={false} />
-          <Header />
           <ProtectedLayout>
             <main className="flex-1 flex flex-col min-h-screen" aria-label="Main content">
               {children}

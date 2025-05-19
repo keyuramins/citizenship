@@ -202,7 +202,12 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
             {questions[current].category === "values" && (
               <div className="text-sm text-orange-400 font-semibold mb-1">Australian Values Question</div>
             )}
-          <Button variant={review[current] ? "default" : "outline"} onClick={handleReview} className="whitespace-nowrap flex items-center gap-1">
+          <Button 
+            variant={review[current] ? "default" : "outline"}
+            onClick={handleReview}
+            className="whitespace-nowrap flex items-center gap-1"
+            disabled={answers[current] !== undefined}
+          >
             <Bookmark className="w-4 h-4" />
             {review[current] ? "Marked for Review" : "Review Later"}
           </Button>
