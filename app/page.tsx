@@ -136,6 +136,13 @@ export default async function Home() {
               <Button className="w-full mt-auto" disabled>
                 Current Plan
               </Button>
+            ) : isLoggedIn ? (
+              <>
+                <Button className="w-full mt-auto" disabled>
+                  Free Plan Active
+                </Button>
+                <div className="text-xs text-muted-foreground text-center mt-2">Your free plan is active.</div>
+              </>
             ) : (
               <Button asChild className="w-full mt-auto">
                 <a href="/register">Sign Up</a>

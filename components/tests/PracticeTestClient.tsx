@@ -10,6 +10,7 @@ import SubscribeButton from "../SubscribeButton";
 import { Bookmark } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "../ui/dialog";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 
 interface Question {
@@ -30,7 +31,10 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
   const [timeLeft, setTimeLeft] = useState(TEST_DURATION);
   const [showToast, setShowToast] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [pendingExitUrl, setPendingExitUrl] = useState<string | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const router = useRouter();
 
   // Timer logic
   useEffect(() => {
@@ -157,6 +161,72 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [answers]);
 
+  // Intercept browser navigation (back/close) if test not completed
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!completed) {
+        event.preventDefault();
+        event.returnValue = "Are you sure you want to leave the test? Your progress will be lost.";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [completed]);
+
+  // Intercept Next.js router navigation (push, replace, back)
+  useEffect(() => {
+    // Patch router.push and router.replace to show dialog
+    const origPush = router.push;
+    const origReplace = router.replace;
+    (router as any).push = (url: string, ...args: any[]) => {
+      if (!completed) {
+        setShowExitConfirm(true);
+        setPendingExitUrl(url);
+        return;
+      }
+      return origPush.call(router, url, ...args);
+    };
+    (router as any).replace = (url: string, ...args: any[]) => {
+      if (!completed) {
+        setShowExitConfirm(true);
+        setPendingExitUrl(url);
+        return;
+      }
+      return origReplace.call(router, url, ...args);
+    };
+    // Listen for browser back/forward
+    const handlePopState = (event: PopStateEvent) => {
+      if (!completed) {
+        setShowExitConfirm(true);
+        setPendingExitUrl(null); // null means just go back
+        window.history.pushState(null, '', window.location.href); // Prevent pop
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      (router as any).push = origPush;
+      (router as any).replace = origReplace;
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [completed, router]);
+
+  const handleExit = () => {
+    setShowExitConfirm(true);
+    setPendingExitUrl("/dashboard");
+  };
+  const confirmExit = () => {
+    setShowExitConfirm(false);
+    if (pendingExitUrl) {
+      router.push(pendingExitUrl);
+    } else {
+      window.history.back();
+    }
+  };
+  const cancelExit = () => {
+    setShowExitConfirm(false);
+    setPendingExitUrl(null);
+  };
+
   if (completed) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -252,7 +322,7 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
         </div>
         {/* Row 3: Exit / Submit */}
         <div className="flex items-center justify-between mt-6 w-full">
-          <Button variant="outline" onClick={() => {/* handle exit logic here */}}>Exit Test</Button>
+          <Button variant="outline" onClick={handleExit}>Exit Test</Button>
           <Button
             variant="secondary"
             onClick={handleSubmit}
@@ -260,16 +330,16 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
             Submit
           </Button>
         </div>
-        {/* Confirmation Dialog */}
-        <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+        {/* Exit Confirmation Dialog */}
+        <Dialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Submit Test?</DialogTitle>
+              <DialogTitle>Exit Test?</DialogTitle>
             </DialogHeader>
-            <div>Are you sure you want to submit your test? You won't be able to change your answers after submission.</div>
+            <div>Are you sure you want to exit the test? Your progress will be lost.</div>
             <DialogFooter>
-              <Button variant="outline" onClick={handleCancelSubmit}>Cancel</Button>
-              <Button variant="secondary" onClick={handleConfirmSubmit}>Confirm</Button>
+              <Button variant="outline" onClick={cancelExit}>Cancel</Button>
+              <Button variant="destructive" onClick={confirmExit}>Exit</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

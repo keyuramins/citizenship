@@ -9,6 +9,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { supabaseBrowserClient } from "../../lib/supabaseBrowserClient";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Profile() {
   const [user, setUser] = useState<any>(null);
@@ -24,6 +25,7 @@ export default function Profile() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchUser() {
@@ -90,11 +92,23 @@ export default function Profile() {
       setError("Supabase client not available.");
       return;
     }
-    // TODO: Check for active Stripe subscription before allowing deletion
-    const { error } = await supabaseBrowserClient.rpc("delete_user"); // You may need a custom function
-    if (error) setError("Failed to delete account");
-    else setSuccess("Account deleted");
     setShowDelete(false);
+    // Call the API route
+    const res = await fetch("/api/account/delete", { method: "POST" });
+    const data = await res.json();
+    if (data.status === "scheduled") {
+      setSuccess("Account deletion scheduled after your subscription ends.");
+    } else if (data.status === "deleted") {
+      setSuccess("Account deleted successfully. You will be logged out.");
+      setTimeout(() => {
+        if (supabaseBrowserClient) {
+          supabaseBrowserClient.auth.signOut();
+        }
+        router.push("/");
+      }, 2000);
+    } else {
+      setError(data.error || "Failed to delete account");
+    }
   }
 
   const hasActiveSubscription = !!user?.user_metadata?.subscription;
@@ -173,7 +187,7 @@ export default function Profile() {
         <div className="mb-4">
           <Dialog open={showDelete} onOpenChange={setShowDelete}>
             <DialogTrigger asChild>
-              <Button variant="destructive" disabled={hasActiveSubscription}>
+              <Button variant="destructive">
                 Delete Account
               </Button>
             </DialogTrigger>
@@ -183,7 +197,7 @@ export default function Profile() {
                 <DialogDescription>
                   {hasActiveSubscription ? (
                     <span className="text-red-700 font-semibold">
-                      You have an active subscription. Please cancel your subscription before deleting your account.
+                      You have an active subscription. Deleting your account will schedule it for deletion after your subscription ends.
                     </span>
                   ) : (
                     <span className="text-red-700 font-semibold">
@@ -193,15 +207,10 @@ export default function Profile() {
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button variant="destructive" onClick={handleDeleteAccount} disabled={hasActiveSubscription}>
+                <Button variant="destructive" onClick={handleDeleteAccount}>
                   Confirm Delete
                 </Button>
-                {hasActiveSubscription && (
-                  <Button asChild variant="outline">
-                    <Link href="/subscription">Manage Subscription</Link>
-                  </Button>
-                )}
-                <Button variant="ghost" onClick={() => setShowDelete(false)}>
+                <Button variant="outline" onClick={() => setShowDelete(false)}>
                   Cancel
                 </Button>
               </DialogFooter>

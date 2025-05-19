@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import ResetPasswordForm from "../../components/ResetPasswordForm";
-
+import { createSupabaseServerClient } from '../../lib/supabaseClient';
+import { redirect } from 'next/navigation';
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://localhost:3000";
 const siteName = process.env.NEXT_PUBLIC_SITENAME;
 
@@ -36,6 +37,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ResetPasswordPage() {
+export default async function ResetPasswordPage() {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) redirect('/dashboard');
   return <ResetPasswordForm />;
 }
