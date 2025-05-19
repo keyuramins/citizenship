@@ -30,23 +30,31 @@ export default function RegisterForm() {
       return;
     }
 
-    // Check if email exists in Supabase
+    // Check if email exists and get provider
     try {
-      const res = await fetch('/api/check-email', {
+      const res = await fetch('/api/check-provider', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
-      const { exists } = await res.json();
-      if (exists) {
-        setError("This email is already registered. Please use a different email or ");
-        setLoading(false);
-        return;
+      if (res.ok) {
+        const { provider } = await res.json();
+        if (provider === 'email') {
+          setError("This email is already registered with email/password. Please login.");
+          setLoading(false);
+          return;
+        } else if (provider === 'google') {
+          setError("This email is already registered with Google. Please login with Google.");
+          setLoading(false);
+          return;
+        } else if (provider) {
+          setError(`This email is already registered with ${provider}. Please login with that provider.`);
+          setLoading(false);
+          return;
+        }
       }
     } catch (err) {
-      setError("Could not verify email. Please try again later.");
-      setLoading(false);
-      return;
+      // If user not found, continue registration
     }
 
     const { data, error } = await supabase.auth.signUp({
@@ -129,13 +137,22 @@ export default function RegisterForm() {
         {error && (
           <div className="mb-4 text-red-600 text-sm flex flex-col items-center">
             {error}
-            {error.includes('already registered') && (
+            {error.includes('email/password') && (
               <Button
                 className="mt-2"
                 onClick={() => router.push('/login')}
                 variant="secondary"
               >
                 Login
+              </Button>
+            )}
+            {error.includes('Google') && (
+              <Button
+                className="mt-2"
+                onClick={handleGoogleLogin}
+                variant="secondary"
+              >
+                Login with Google
               </Button>
             )}
           </div>
