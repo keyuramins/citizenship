@@ -1,3 +1,4 @@
+// app/tests/[type]/[testId]/page.tsx
 import { createSupabaseServerClient } from '../../../../lib/supabaseClient';
 import { redirect } from 'next/navigation';
 import { generateSequentialTests } from "../../../../lib/generateSequentialTests";
@@ -6,6 +7,8 @@ import PracticeTestClient from "../../../../components/tests/PracticeTestClient"
 import { notFound } from "next/navigation";
 import { getStripeProductsWithPrices } from "../../../../lib/stripeClient";
 import { shuffle } from "../../../../lib/testUtils";
+import { getTestStats } from "../../../../lib/testStats";
+import { TestType } from "../../../../lib/types";
 
 export default async function TestPage({ params }: { params: Promise<{ type: string; testId: string }> }) {
   const supabase = await createSupabaseServerClient();
@@ -14,7 +17,7 @@ export default async function TestPage({ params }: { params: Promise<{ type: str
 
   const { type, testId } = await params;
   let tests;
-  if (type === "sequential") {
+  if (type === "sequential" || type === "guided") {
     tests = await generateSequentialTests();
   } else if (type === "random") {
     tests = await generateRandomizedTests();
@@ -25,14 +28,24 @@ export default async function TestPage({ params }: { params: Promise<{ type: str
   if (isNaN(idx) || idx < 0 || idx >= tests.length) {
     notFound();
   }
-  // Shuffle the questions if the test is randomized
-  let questions = type === "random" ? shuffle(tests[idx]) : tests[idx];
 
   // Server-side: check subscription status
   const isPremium = !!user?.user_metadata?.subscription;
-  if (!isPremium) {
-    questions = questions.slice(0, 5); // Only first 5 questions for free users
+
+  // ENFORCE ACCESS RULES
+  if (type === "random" && !isPremium) {
+    // Block all random tests for free users
+    redirect('/random');
   }
+  if ((type === "sequential" || type === "guided") && !isPremium && idx >= 5) {
+    // Block test 6+ for free users
+    redirect(`/${type}`);
+  }
+
+  let questions = type === "random" ? shuffle(tests[idx]) : tests[idx];
+
+  // Fetch test statistics
+  const stats = await getTestStats(user.id, type as TestType, parseInt(testId, 10));
 
   // Fetch Stripe products and get the first priceId
   const products = await getStripeProductsWithPrices();
@@ -40,7 +53,14 @@ export default async function TestPage({ params }: { params: Promise<{ type: str
 
   return (
     <div className="p-8">
-      <PracticeTestClient questions={questions} isPremium={isPremium} upgradePriceId={upgradePriceId} testId={testId} />
+      <PracticeTestClient
+        questions={questions}
+        isPremium={isPremium}
+        upgradePriceId={upgradePriceId}
+        testId={testId}
+        mode={type}
+        testStats={stats?.lastAttempt || undefined}
+      />
     </div>
   );
 } 

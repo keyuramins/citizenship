@@ -1,3 +1,4 @@
+// components/tests/PracticeTestClient.tsx
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { QuestionCard } from "./QuestionCard";
@@ -11,6 +12,9 @@ import { Bookmark } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "../ui/dialog";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { TestResult, TestType } from "../../lib/types";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Progress } from "../../src/components/ui/progress";
 
 
 interface Question {
@@ -21,9 +25,18 @@ interface Question {
   explanation: string;
 }
 
+interface PracticeTestClientProps {
+  questions: Question[];
+  isPremium: boolean;
+  upgradePriceId?: string;
+  testId: string | number;
+  mode?: string;
+  testStats?: TestResult;
+}
+
 const TEST_DURATION = 45 * 60; // 45 minutes in seconds
 
-export default function PracticeTestClient({ questions, isPremium, upgradePriceId, testId }: { questions: Question[]; isPremium: boolean; upgradePriceId?: string; testId: string | number; }) {
+export default function PracticeTestClient({ questions, isPremium, upgradePriceId, testId, mode, testStats }: PracticeTestClientProps) {
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<(string | undefined)[]>(Array(questions.length).fill(undefined));
   const [review, setReview] = useState<boolean[]>(Array(questions.length).fill(false));
@@ -94,11 +107,11 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
 
   // Navigation
   const handleNavigate = (idx: number) => {
-    if (!isPremium && idx >= 5) {
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 2000);
-      return;
-    }
+    // if (!isPremium && idx >= 5) {
+    //   setShowToast(true);
+    //   setTimeout(() => setShowToast(false), 2000);
+    //   return;
+    // }
     setCurrent(idx);
   };
 
@@ -141,10 +154,78 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
     // If all questions are answered and none are marked for review, submit directly
     handleConfirmSubmit();
   };
-  const handleConfirmSubmit = () => {
+  const handleConfirmSubmit = async () => {
     setShowConfirm(false);
     setCompleted(true);
     clearInterval(timerRef.current!);
+
+    // Calculate test results
+    const valuesQuestions = questions.filter(q => q.category === "values");
+    const valuesCorrect = valuesQuestions.filter((q, i) => {
+      const idx = questions.indexOf(q);
+      return answers[idx]?.toLowerCase() === q.answer.toLowerCase();
+    }).length;
+    const governmentQuestions = questions.filter(q => q.category === "government");
+    const governmentCorrect = governmentQuestions.filter((q, i) => {
+      const idx = questions.indexOf(q);
+      return answers[idx]?.toLowerCase() === q.answer.toLowerCase();
+    }).length;
+    const beliefsQuestions = questions.filter(q => q.category === "beliefs");
+    const beliefsCorrect = beliefsQuestions.filter((q, i) => {
+      const idx = questions.indexOf(q);
+      return answers[idx]?.toLowerCase() === q.answer.toLowerCase();
+    }).length;
+    const peopleQuestions = questions.filter(q => q.category === "people");
+    const peopleCorrect = peopleQuestions.filter((q, i) => {
+      const idx = questions.indexOf(q);
+      return answers[idx]?.toLowerCase() === q.answer.toLowerCase();
+    }).length;
+    const totalCorrect = questions.filter((q, i) => answers[i]?.toLowerCase() === q.answer.toLowerCase()).length;
+
+    const result: TestResult = {
+      test_id: typeof testId === 'string' ? parseInt(testId, 10) : testId,
+      attempt_count: 1, // This will be incremented server-side if needed
+      correct_answers: totalCorrect,
+      score_percent: Math.round((totalCorrect / questions.length) * 100),
+      values_correct: valuesCorrect,
+      government_correct: governmentCorrect,
+      beliefs_correct: beliefsCorrect,
+      people_correct: peopleCorrect,
+      values_percent: Math.round((valuesCorrect / valuesQuestions.length) * 100),
+      government_percent: Math.round((governmentCorrect / governmentQuestions.length) * 100),
+      beliefs_percent: Math.round((beliefsCorrect / beliefsQuestions.length) * 100),
+      people_percent: Math.round((peopleCorrect / peopleQuestions.length) * 100),
+      time_used_seconds: TEST_DURATION - timeLeft,
+      passed: valuesCorrect === valuesQuestions.length && (totalCorrect / questions.length) >= 0.75
+    };
+
+    try {
+      const testType = (mode || 'sequential') as TestType;
+      console.log('Submitting test result:', { testType, result });
+      
+      const response = await fetch('/api/test-results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          testType: testType,
+          result,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error(`Failed to save test results: ${errorText}`);
+      }
+
+      // After successful submission, navigate to the stats page
+      router.push(`/tests/${testType}/${testId}/stats`);
+    } catch (error) {
+      console.error('Error saving test results:', error);
+      toast.error('Failed to save test results. Please try again.');
+    }
   };
   const handleCancelSubmit = () => {
     setShowConfirm(false);
@@ -166,8 +247,8 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
     const idx = questions.indexOf(q);
     return answers[idx] === q.answer;
   }).length;
-  const peoplesQuestions = questions.filter(q => q.category === "peoples");
-  const peoplesCorrect = peoplesQuestions.filter((q, i) => {
+  const peopleQuestions = questions.filter(q => q.category === "people");
+  const peopleCorrect = peopleQuestions.filter((q, i) => {
     const idx = questions.indexOf(q);
     return answers[idx] === q.answer;
   }).length;
@@ -176,7 +257,7 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
   const valuesScore = Math.round((valuesCorrect / valuesQuestions.length) * 100);
   const governmentScore = Math.round((governmentCorrect / governmentQuestions.length) * 100);
   const beliefsScore = Math.round((beliefsCorrect / beliefsQuestions.length) * 100);
-  const peoplesScore = Math.round((peoplesCorrect / peoplesQuestions.length) * 100);
+  const peopleScore = Math.round((peopleCorrect / peopleQuestions.length) * 100);
   // Social share data
   const score = Math.round((totalCorrect / questions.length) * 100);
   const timeUsed = TEST_DURATION - timeLeft;
@@ -239,66 +320,175 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
     setPendingExitUrl(null);
   };
 
+  // Modify the Rating component to store feedback
+  const handleRatingSubmit = async (rating: number, comment: string) => {
+    try {
+      const testType = (mode || 'sequential') as TestType;
+      const testNum = typeof testId === 'string' ? parseInt(testId, 10) : Number(testId);
+      
+      const result: Partial<TestResult> = {
+        test_id: testNum,
+        feedback_rating: rating,
+        feedback_comment: comment,
+        passed: passed
+      };
+
+      const response = await fetch('/api/test-results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          testType,
+          result
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to store feedback');
+      }
+    } catch (error) {
+      console.error('Error storing feedback:', error);
+      toast.error('Failed to save feedback. Please try again later.');
+    }
+  };
+
   if (completed) {
+    // Parse testId as number for navigation
+    const testNum = typeof testId === 'string' ? parseInt(testId, 10) : Number(testId);
+    const prevTest = testNum > 1 ? testNum - 1 : null;
+    const nextTest = testNum < 20 ? testNum + 1 : null;
+    const testType = mode || 'sequential';
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-full max-w-3xl mx-auto p-6 bg-card rounded shadow">
-          <h2 className="text-2xl font-bold mb-4">Test Complete</h2>
-          <div className="mb-4 border border-border rounded-md p-4">
-            <p>You answered {totalCorrect} out of {questions.length} questions correctly.</p>
-            <span className="font-semibold">Score:</span>&nbsp;
-            <span className="font-semibold">{score}%</span>
-            <div>
-            {passed ? (
-              <span className="text-green-600 font-semibold">You Passed!</span>
-            ) : (
-              <span className="text-red-600 font-semibold">You Did Not Pass</span>
-            )}
-          </div>
-          </div>
-          <div className="mb-4 border border-border rounded-md p-4">
-          <div className="mb-2">
-            <span className="font-semibold">Australian Values Questions</span>&nbsp;&#8209;&nbsp;
-            <span>Correct:</span>&nbsp;
-            <span className="font-semibold">{valuesCorrect} / {valuesQuestions.length}</span>&nbsp;&#8209;&nbsp;
-            <span className="font-semibold">{valuesScore}%</span>
-          </div>
-          <div className="mb-2">
-            <span className="font-semibold">Australian Government Questions</span>&nbsp;&#8209;&nbsp;
-            <span>Correct:</span>&nbsp;
-            <span className="font-semibold">{governmentCorrect} / {governmentQuestions.length}</span>&nbsp;&#8209;&nbsp;
-            <span className="font-semibold">{governmentScore}%</span>
-          </div>
-          <div className="mb-2">
-            <span className="font-semibold">Australian Beliefs Questions</span>&nbsp;&#8209;&nbsp;
-            <span>Correct:</span>&nbsp;
-            <span className="font-semibold">{beliefsCorrect} / {beliefsQuestions.length}</span>&nbsp;&#8209;&nbsp;
-            <span className="font-semibold">{beliefsScore}%</span>
-          </div>
-          <div className="mb-2">
-            <span className="font-semibold">Australian Peoples Questions</span>&nbsp;&#8209;&nbsp;
-            <span>Correct:</span>&nbsp;
-            <span className="font-semibold">{peoplesCorrect} / {peoplesQuestions.length}</span>&nbsp;&#8209;&nbsp;
-            <span className="font-semibold">{peoplesScore}%</span>
-          </div>
-          <div className="mb-2">
-            <span className="font-semibold">Time Used:</span>&nbsp; 
-            <span className="font-mono">{timeStr}</span>
-          </div>
-          </div>
-          <div className="mb-4 border border-border rounded-md p-4">
-            {!isPremium && upgradePriceId && (
-              <div className="mb-4">
-                <p>Upgrade to Premium to unlock all questions!</p>
-                <SubscribeButton priceId={upgradePriceId} label="Upgrade Now" />
+      <div className="space-y-6">
+        {testStats && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Previous Test Results</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">Overall Score</p>
+                    <p className="text-2xl font-bold">{testStats.score_percent}%</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">Attempts</p>
+                    <p className="text-2xl font-bold">{testStats.attempt_count}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">Status</p>
+                    <p className={`text-2xl font-bold ${testStats.passed ? 'text-green-500' : 'text-red-500'}`}>
+                      {testStats.passed ? 'PASSED' : 'FAILED'}
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span>Values</span>
+                      <span>{testStats.values_percent}%</span>
+                    </div>
+                    <Progress value={testStats.values_percent} />
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span>Government</span>
+                      <span>{testStats.government_percent}%</span>
+                    </div>
+                    <Progress value={testStats.government_percent} />
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span>Beliefs</span>
+                      <span>{testStats.beliefs_percent}%</span>
+                    </div>
+                    <Progress value={testStats.beliefs_percent} />
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span>People</span>
+                      <span>{testStats.people_percent}%</span>
+                    </div>
+                    <Progress value={testStats.people_percent} />
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
-          <div className="mb-4 border border-border rounded-md p-4">
-            <SocialShare title="Citizenship Practice Test" link={typeof window !== 'undefined' ? window.location.href : ''} score={score} time={timeStr} />
-          </div>
-          <div className="mb-4 border border-border rounded-md p-4">
-            <Rating />
+            </CardContent>
+          </Card>
+        )}
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="w-full max-w-3xl mx-auto p-6 bg-card rounded shadow">
+            <h2 className="text-2xl font-bold mb-4">Test Complete</h2>
+            <div className="mb-4 border border-border rounded-md p-4">
+              <p>You answered {totalCorrect} out of {questions.length} questions correctly.</p>
+              <span className="font-semibold">Score:</span>&nbsp;
+              <span className="font-semibold">{score}%</span>
+              <div>
+              {passed ? (
+                <span className="text-green-600 font-semibold">You Passed!</span>
+              ) : (
+                <span className="text-red-600 font-semibold">You Did Not Pass</span>
+              )}
+            </div>
+            </div>
+            <div className="mb-4 border border-border rounded-md p-4">
+            <div className="mb-2">
+              <span className="font-semibold">Australian Values Questions</span>&nbsp;&#8209;&nbsp;
+              <span>Correct:</span>&nbsp;
+              <span className="font-semibold">{valuesCorrect} / {valuesQuestions.length}</span>&nbsp;&#8209;&nbsp;
+              <span className="font-semibold">{valuesScore}%</span>
+            </div>
+            <div className="mb-2">
+              <span className="font-semibold">Australian Government Questions</span>&nbsp;&#8209;&nbsp;
+              <span>Correct:</span>&nbsp;
+              <span className="font-semibold">{governmentCorrect} / {governmentQuestions.length}</span>&nbsp;&#8209;&nbsp;
+              <span className="font-semibold">{governmentScore}%</span>
+            </div>
+            <div className="mb-2">
+              <span className="font-semibold">Australian Beliefs Questions</span>&nbsp;&#8209;&nbsp;
+              <span>Correct:</span>&nbsp;
+              <span className="font-semibold">{beliefsCorrect} / {beliefsQuestions.length}</span>&nbsp;&#8209;&nbsp;
+              <span className="font-semibold">{beliefsScore}%</span>
+            </div>
+            <div className="mb-2">
+              <span className="font-semibold">Australian Peoples Questions</span>&nbsp;&#8209;&nbsp;
+              <span>Correct:</span>&nbsp;
+              <span className="font-semibold">{peopleCorrect} / {peopleQuestions.length}</span>&nbsp;&#8209;&nbsp;
+              <span className="font-semibold">{peopleScore}%</span>
+            </div>
+            <div className="mb-2">
+              <span className="font-semibold">Time Used:</span>&nbsp; 
+              <span className="font-mono">{timeStr}</span>
+            </div>
+            </div>
+            {/* Navigation Buttons */}
+            <div className="flex gap-2 mb-4">
+              <Button asChild>
+                <a href={`/tests/${testType}/${testNum}`}>Retake Test</a>
+              </Button>
+              <Button asChild disabled={!prevTest} variant="outline">
+                <a href={prevTest ? `/tests/${testType}/${prevTest}` : undefined}>Previous Test</a>
+              </Button>
+              <Button asChild disabled={!nextTest} variant="outline">
+                <a href={nextTest ? `/tests/${testType}/${nextTest}` : undefined}>Next Test</a>
+              </Button>
+            </div>
+            <div className="mb-4 border border-border rounded-md p-4">
+              {!isPremium && upgradePriceId && (
+                <div className="mb-4">
+                  <p>Upgrade to Premium to unlock all questions!</p>
+                  <SubscribeButton priceId={upgradePriceId} label="Upgrade Now" />
+                </div>
+              )}
+            </div>
+            <div className="mb-4 border border-border rounded-md p-4">
+              <SocialShare title="Citizenship Practice Test" link={typeof window !== 'undefined' ? window.location.href : ''} score={score} time={timeStr} />
+            </div>
+            <div className="mb-4 border border-border rounded-md p-4">
+              <Rating onSubmit={handleRatingSubmit} />
+            </div>
           </div>
         </div>
       </div>
@@ -306,122 +496,189 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="w-full max-w-5xl p-5 bg-card rounded shadow">
-        <div className="flex justify-between items-center mb-4 px-2 flex-wrap gap-2">
-          <div>
-            <h1 className="text-3xl font-bold">Practice Test {testId}</h1>
-            <p className="text-gray-400">Answer all questions to complete the test</p>
-          </div>
-          <div className="flex items-center gap-2 border border-gray-600 rounded-md p-2">
-            <Timer seconds={timeLeft} />
-          </div>
-        </div>
-        <div className="w-full m-2 p-5 h-full border border-border rounded">
-        <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
-        <div className="text-lg font-bold">Question {current + 1} of {questions.length}</div>
-            {questions[current].category === "values" && (
-              <div className="text-sm text-orange-400 font-semibold mb-1">Australian Values Question</div>
-            )}
-          <Button 
-            variant={review[current] ? "default" : "outline"}
-            onClick={handleReview}
-            className="whitespace-nowrap flex items-center gap-1"
-            disabled={answers[current] !== undefined}
-          >
-            <Bookmark className="w-4 h-4" />
-            {review[current] ? "Marked for Review" : "Review Later"}
-          </Button>
-        </div>
-        <QuestionCard
-          question={questions[current].question}
-          options={questions[current].options}
-          onAnswer={handleAnswer}
-          selectedOption={answers[current]}
-          correctOption={answers[current] ? questions[current].answer : undefined}
-          explanation={questions[current].explanation}
-        />
-        {/* Row 1: Previous / Answered / Next */}
-        <div className="flex items-center justify-between gap-2 mb-4 w-full">
-          <Button
-            variant="outline"
-            onClick={() => setCurrent((c) => Math.max(0, c - 1))}
-            disabled={current === 0}
-          >
-            Previous
-          </Button>
-          <div className="text-muted-foreground text-center flex-1">
-            {answers.filter(a => a !== undefined).length} / {questions.length} answered
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => setCurrent((c) => Math.min(questions.length - 1, c + 1))}
-            disabled={current === questions.length - 1}
-          >
-            Next
-          </Button>
-        </div>
-        {/* Row 2: Pagination */}
-        <div className="flex justify-center mb-4 w-full">
-          <TestNavigation
-            total={20}
-            current={current}
-            onNavigate={handleNavigate}
-            navColors={navColors}
-            isPremium={isPremium}
-          />
-        </div>
-        {/* Row 3: Exit / Submit */}
-        <div className="flex items-center justify-between mt-6 w-full">
-          <Button variant="outline" onClick={handleExit}>Exit Test</Button>
-          <Button
-            variant="secondary"
-            onClick={handleSubmit}
-          >
-            Submit
-          </Button>
-        </div>
-        {/* Exit Confirmation Dialog */}
-        <Dialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Exit Test?</DialogTitle>
-            </DialogHeader>
-            <div>Are you sure you want to exit the test? Your progress will be lost.</div>
-            <DialogFooter>
-              <Button variant="outline" onClick={cancelExit}>Cancel</Button>
-              <Button variant="destructive" onClick={confirmExit}>Exit</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        {/* Submit Confirmation Dialog */}
-        <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Submit Test?</DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <p>Are you sure you want to submit your test?</p>
-              <p className="text-muted-foreground mt-2">
-                You have answered {answers.filter(a => a !== undefined).length} out of {questions.length} questions.
-                {review.some(r => r) && (
-                  <span className="block mt-1 text-orange-400">
-                    Note: You have questions marked for review.
-                  </span>
-                )}
-              </p>
+    <div className="space-y-6">
+      {testStats && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Previous Test Results</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Overall Score</p>
+                  <p className="text-2xl font-bold">{testStats.score_percent}%</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Attempts</p>
+                  <p className="text-2xl font-bold">{testStats.attempt_count}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Status</p>
+                  <p className={`text-2xl font-bold ${testStats.passed ? 'text-green-500' : 'text-red-500'}`}>
+                    {testStats.passed ? 'PASSED' : 'FAILED'}
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>Values</span>
+                    <span>{testStats.values_percent}%</span>
+                  </div>
+                  <Progress value={testStats.values_percent} />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>Government</span>
+                    <span>{testStats.government_percent}%</span>
+                  </div>
+                  <Progress value={testStats.government_percent} />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>Beliefs</span>
+                    <span>{testStats.beliefs_percent}%</span>
+                  </div>
+                  <Progress value={testStats.beliefs_percent} />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>People</span>
+                    <span>{testStats.people_percent}%</span>
+                  </div>
+                  <Progress value={testStats.people_percent} />
+                </div>
+              </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={handleCancelSubmit}>Continue Test</Button>
-              <Button onClick={handleConfirmSubmit}>Submit Test</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        {showToast && (
-          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-orange-600 text-white px-4 py-2 rounded shadow z-50">
-            Upgrade to Premium to unlock all questions and get an appropriate breakdown of your test results!
+          </CardContent>
+        </Card>
+      )}
+      
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-full max-w-5xl p-5 bg-card rounded shadow">
+          <div className="flex justify-between items-center mb-4 px-2 flex-wrap gap-2">
+            <div>
+              <h1 className="text-3xl font-bold">Practice Test {testId}</h1>
+              <p className="text-gray-400">Answer all questions to complete the test</p>
+            </div>
+            <div className="flex items-center gap-2 border border-gray-600 rounded-md p-2">
+              <Timer seconds={timeLeft} />
+            </div>
           </div>
-        )}
+          <div className="w-full m-2 p-5 h-full border border-border rounded">
+          <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+          <div className="text-lg font-bold">Question {current + 1} of {questions.length}</div>
+              {/* Always show category for guided mode, otherwise only for values */}
+              {(mode === 'guided') && (
+                <div className={
+                  questions[current].category === "values"
+                    ? "text-sm text-orange-400 font-semibold mb-1"
+                    : "text-sm text-blue-400 font-semibold mb-1"
+                }>
+                  {questions[current].category.charAt(0).toUpperCase() + questions[current].category.slice(1)} Question
+                </div>
+              )}
+            <Button 
+              variant={review[current] ? "default" : "outline"}
+              onClick={handleReview}
+              className="whitespace-nowrap flex items-center gap-1"
+              disabled={answers[current] !== undefined}
+            >
+              <Bookmark className="w-4 h-4" />
+              {review[current] ? "Marked for Review" : "Review Later"}
+            </Button>
+          </div>
+          <QuestionCard
+            question={questions[current].question}
+            options={questions[current].options}
+            onAnswer={handleAnswer}
+            selectedOption={answers[current]}
+            correctOption={answers[current] ? questions[current].answer : undefined}
+            explanation={questions[current].explanation}
+            category={mode === 'guided' ? questions[current].category : undefined}
+          />
+          {/* Row 1: Previous / Answered / Next */}
+          <div className="flex items-center justify-between gap-2 mb-4 w-full">
+            <Button
+              variant="outline"
+              onClick={() => setCurrent((c) => Math.max(0, c - 1))}
+              disabled={current === 0}
+            >
+              Previous
+            </Button>
+            <div className="text-muted-foreground text-center flex-1">
+              {answers.filter(a => a !== undefined).length} / {questions.length} answered
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setCurrent((c) => Math.min(questions.length - 1, c + 1))}
+              disabled={current === questions.length - 1}
+            >
+              Next
+            </Button>
+          </div>
+          {/* Row 2: Pagination */}
+          <div className="flex justify-center mb-4 w-full">
+            <TestNavigation
+              total={20}
+              current={current}
+              onNavigate={handleNavigate}
+              navColors={navColors}
+            />
+          </div>
+          {/* Row 3: Exit / Submit */}
+          <div className="flex items-center justify-between mt-6 w-full">
+            <Button variant="outline" onClick={handleExit}>Exit Test</Button>
+            <Button
+              variant="secondary"
+              onClick={handleSubmit}
+            >
+              Submit
+            </Button>
+          </div>
+          {/* Exit Confirmation Dialog */}
+          <Dialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Exit Test?</DialogTitle>
+              </DialogHeader>
+              <div>Are you sure you want to exit the test? Your progress will be lost.</div>
+              <DialogFooter>
+                <Button variant="outline" onClick={cancelExit}>Cancel</Button>
+                <Button variant="destructive" onClick={confirmExit}>Exit</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          {/* Submit Confirmation Dialog */}
+          <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Submit Test?</DialogTitle>
+              </DialogHeader>
+              <div className="py-4">
+                <p>Are you sure you want to submit your test?</p>
+                <p className="text-muted-foreground mt-2">
+                  You have answered {answers.filter(a => a !== undefined).length} out of {questions.length} questions.
+                  {review.some(r => r) && (
+                    <span className="block mt-1 text-orange-400">
+                      Note: You have questions marked for review.
+                    </span>
+                  )}
+                </p>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={handleCancelSubmit}>Continue Test</Button>
+                <Button onClick={handleConfirmSubmit}>Submit Test</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          {showToast && (
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-orange-600 text-white px-4 py-2 rounded shadow z-50">
+              Upgrade to Premium to unlock all questions and get an appropriate breakdown of your test results!
+            </div>
+          )}
+          </div>
         </div>
       </div>
     </div>

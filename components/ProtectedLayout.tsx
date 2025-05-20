@@ -10,6 +10,9 @@ const protectedRoutes = [
   "/tests",
   "/profile",
   "/subscription",
+  "/guided",
+  "/sequential",
+  "/random",
 ];
 
 function ProtectedLayoutInner({ children }: { children: React.ReactNode }) {

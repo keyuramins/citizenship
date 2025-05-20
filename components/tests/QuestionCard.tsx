@@ -5,11 +5,17 @@ interface QuestionCardProps {
   selectedOption?: string;
   correctOption?: string;
   explanation?: string;
+  category?: string;
 }
 //This only shows the question, options and explanation. It does not show the timer or the navigation buttons.
-export function QuestionCard({ question, options, onAnswer, selectedOption, correctOption, explanation }: QuestionCardProps) {
+export function QuestionCard({ question, options, onAnswer, selectedOption, correctOption, explanation, category }: QuestionCardProps) {
   return (
     <div className="mb-6">
+      {category && (
+        <div className="text-xs text-blue-400 font-semibold mb-1">
+          {category.charAt(0).toUpperCase() + category.slice(1)} Question
+        </div>
+      )}
       <h2 className="text-lg font-semibold mb-2">{question}</h2>
       <div className="space-y-2">
         {options.map(option => (

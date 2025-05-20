@@ -1,7 +1,7 @@
 'use client';
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, User, CreditCard, LogOut } from "lucide-react";
+import { Home, User, CreditCard, LogOut, BookOpen } from "lucide-react";
 import {
   Sidebar as ShadSidebar,
   SidebarContent,
@@ -16,6 +16,12 @@ import {
 import { cn } from "../src/lib/utils";
 import { supabaseBrowserClient } from "../lib/supabaseBrowserClient";
 import { useEffect, useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "./ui/dropdown-menu";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
@@ -57,32 +63,105 @@ export default function Sidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {links.map(({ href, label, icon: Icon }) => (
-            <SidebarMenuItem key={href}>
-              <SidebarMenuButton asChild>
-                <Link
-                  href={href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md transition-colors font-medium text-base",
-                    pathname.startsWith(href)
-                      ? "bg-primary/10 text-primary"
-                      : "hover:bg-muted text-muted-foreground"
-                  )}
-                  aria-current={pathname.startsWith(href) ? "page" : undefined}
+          {/* Dashboard */}
+          <SidebarMenuItem key="/dashboard">
+            <SidebarMenuButton asChild>
+              <Link
+                href="/dashboard"
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-md transition-colors font-medium text-base",
+                  pathname.startsWith("/dashboard")
+                    ? "bg-primary/10 text-primary"
+                    : "hover:bg-muted text-muted-foreground"
+                )}
+                aria-current={pathname.startsWith("/dashboard") ? "page" : undefined}
+              >
+                <Home className="w-5 h-5 shrink-0" aria-hidden />
+                <span className={cn("transition-all duration-200", !open && "opacity-0 w-0 overflow-hidden")}>Dashboard</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          {/* Practice Tests Dropdown or Inline Submenu */}
+          <SidebarMenuItem>
+            {open ? (
+              <div className="w-full">
+                <SidebarMenuButton className={cn("flex items-center gap-3 px-3 py-2 rounded-md transition-colors font-medium text-base w-full", pathname.startsWith("/dashboard") ? "bg-primary/10 text-primary" : "hover:bg-muted text-muted-foreground")}
+                  aria-current={pathname.startsWith("/dashboard") ? "page" : undefined}
+                  asChild={false}
+                  type="button"
+                  tabIndex={-1}
+                  style={{ cursor: "default" }}
+                  disabled
                 >
-                  <Icon className="w-5 h-5 shrink-0" aria-hidden />
-                  <span
-                    className={cn(
-                      "transition-all duration-200",
-                      !open && "opacity-0 w-0 overflow-hidden"
-                    )}
+                  <BookOpen className="w-5 h-5 shrink-0" aria-hidden />
+                  <span className={cn("transition-all duration-200")}>Practice Tests</span>
+                </SidebarMenuButton>
+                <div className="pl-8 flex flex-col gap-1 mt-1">
+                  <Link href="/guided" className={cn("px-2 py-1 rounded text-base transition-colors", pathname.startsWith("/guided") ? "bg-primary/10 text-primary" : "hover:bg-muted text-muted-foreground")}>Guided Tests</Link>
+                  <Link href="/sequential" className={cn("px-2 py-1 rounded text-base transition-colors", pathname.startsWith("/sequential") ? "bg-primary/10 text-primary" : "hover:bg-muted text-muted-foreground")}>Sequential Tests</Link>
+                  <Link href="/random" className={cn("px-2 py-1 rounded text-base transition-colors", pathname.startsWith("/random") ? "bg-primary/10 text-primary" : "hover:bg-muted text-muted-foreground")}>Random Tests</Link>
+                </div>
+              </div>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuButton className={cn("flex items-center gap-3 px-3 py-2 rounded-md transition-colors font-medium text-base w-full", pathname.startsWith("/dashboard") ? "bg-primary/10 text-primary" : "hover:bg-muted text-muted-foreground")}
+                    aria-current={pathname.startsWith("/dashboard") ? "page" : undefined}
                   >
-                    {label}
-                  </span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+                    <BookOpen className="w-5 h-5 shrink-0" aria-hidden />
+                    <span className={cn("transition-all duration-200", !open && "opacity-0 w-0 overflow-hidden")}>Practice Tests</span>
+                    <svg className={cn("ml-auto transition-transform", !open && "hidden")} width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                  </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="right" align="start" className="ml-2">
+                  <DropdownMenuItem asChild>
+                    <Link href="/guided">Guided Tests</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/sequential">Sequential Tests</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/random">Random Tests</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </SidebarMenuItem>
+          {/* Profile & Subscription */}
+          <SidebarMenuItem key="/profile">
+            <SidebarMenuButton asChild>
+              <Link
+                href="/profile"
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-md transition-colors font-medium text-base",
+                  pathname.startsWith("/profile")
+                    ? "bg-primary/10 text-primary"
+                    : "hover:bg-muted text-muted-foreground"
+                )}
+                aria-current={pathname.startsWith("/profile") ? "page" : undefined}
+              >
+                <User className="w-5 h-5 shrink-0" aria-hidden />
+                <span className={cn("transition-all duration-200", !open && "opacity-0 w-0 overflow-hidden")}>Profile</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem key="/subscription">
+            <SidebarMenuButton asChild>
+              <Link
+                href="/subscription"
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-md transition-colors font-medium text-base",
+                  pathname.startsWith("/subscription")
+                    ? "bg-primary/10 text-primary"
+                    : "hover:bg-muted text-muted-foreground"
+                )}
+                aria-current={pathname.startsWith("/subscription") ? "page" : undefined}
+              >
+                <CreditCard className="w-5 h-5 shrink-0" aria-hidden />
+                <span className={cn("transition-all duration-200", !open && "opacity-0 w-0 overflow-hidden")}>Subscription</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
       {user && (

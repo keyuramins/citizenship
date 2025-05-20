@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       if (!createError) {
         // Send invite/password reset email
         try {
-          await supabase.auth.admin.inviteUserByEmail(customerEmail);
+        await supabase.auth.admin.inviteUserByEmail(customerEmail);
         } catch (inviteError) {
           console.error('Supabase inviteUserByEmail error:', inviteError);
         }
