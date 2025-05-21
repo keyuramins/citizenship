@@ -7,8 +7,7 @@ import PracticeTestClient from "../../../../components/tests/PracticeTestClient"
 import { notFound } from "next/navigation";
 import { getStripeProductsWithPrices } from "../../../../lib/stripeClient";
 import { shuffle } from "../../../../lib/testUtils";
-import { getTestStats } from "../../../../lib/testStats";
-import { TestType } from "../../../../lib/types";
+import { fetchTestResultForTest } from '../../../../lib/testResults';
 
 export default async function TestPage({ params }: { params: Promise<{ type: string; testId: string }> }) {
   const supabase = await createSupabaseServerClient();
@@ -44,12 +43,12 @@ export default async function TestPage({ params }: { params: Promise<{ type: str
 
   let questions = type === "random" ? shuffle(tests[idx]) : tests[idx];
 
-  // Fetch test statistics
-  const stats = await getTestStats(user.id, type as TestType, parseInt(testId, 10));
-
   // Fetch Stripe products and get the first priceId
   const products = await getStripeProductsWithPrices();
   const upgradePriceId = products?.[0]?.prices?.[0]?.id || "";
+
+  // Fetch previous test result for HUD
+  const testResult = await fetchTestResultForTest(user.id, type, parseInt(testId, 10));
 
   return (
     <div className="p-8">
@@ -59,7 +58,7 @@ export default async function TestPage({ params }: { params: Promise<{ type: str
         upgradePriceId={upgradePriceId}
         testId={testId}
         mode={type}
-        testStats={stats?.lastAttempt || undefined}
+        testResult={testResult}
       />
     </div>
   );

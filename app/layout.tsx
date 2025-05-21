@@ -35,7 +35,7 @@ export default function RootLayout({
         <ClientThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <NextTopLoader color="#2563eb" showSpinner={false} />
           <ProtectedLayout>
-            <main className="flex-1 flex flex-col min-h-screen" aria-label="Main content">
+            <main className="flex-1 flex flex-col" aria-label="Main content">
               {children}
             </main>
           </ProtectedLayout>

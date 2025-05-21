@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { TestResult, TestType } from "../../lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Progress } from "../../src/components/ui/progress";
+import { format, formatDistanceToNow } from "date-fns";
 
 
 interface Question {
@@ -31,12 +32,12 @@ interface PracticeTestClientProps {
   upgradePriceId?: string;
   testId: string | number;
   mode?: string;
-  testStats?: TestResult;
+  testResult?: TestResult | null;
 }
 
 const TEST_DURATION = 45 * 60; // 45 minutes in seconds
 
-export default function PracticeTestClient({ questions, isPremium, upgradePriceId, testId, mode, testStats }: PracticeTestClientProps) {
+export default function PracticeTestClient({ questions, isPremium, upgradePriceId, testId, mode, testResult }: PracticeTestClientProps) {
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<(string | undefined)[]>(Array(questions.length).fill(undefined));
   const [review, setReview] = useState<boolean[]>(Array(questions.length).fill(false));
@@ -219,9 +220,6 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
         console.error('Server response:', response.status, errorText);
         throw new Error(`Failed to save test results: ${errorText}`);
       }
-
-      // After successful submission, navigate to the stats page
-      router.push(`/tests/${testType}/${testId}/stats`);
     } catch (error) {
       console.error('Error saving test results:', error);
       toast.error('Failed to save test results. Please try again.');
@@ -361,66 +359,9 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
     const testType = mode || 'sequential';
     return (
       <div className="space-y-6">
-        {testStats && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Previous Test Results</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">Overall Score</p>
-                    <p className="text-2xl font-bold">{testStats.score_percent}%</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">Attempts</p>
-                    <p className="text-2xl font-bold">{testStats.attempt_count}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">Status</p>
-                    <p className={`text-2xl font-bold ${testStats.passed ? 'text-green-500' : 'text-red-500'}`}>
-                      {testStats.passed ? 'PASSED' : 'FAILED'}
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span>Values</span>
-                      <span>{testStats.values_percent}%</span>
-                    </div>
-                    <Progress value={testStats.values_percent} />
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span>Government</span>
-                      <span>{testStats.government_percent}%</span>
-                    </div>
-                    <Progress value={testStats.government_percent} />
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span>Beliefs</span>
-                      <span>{testStats.beliefs_percent}%</span>
-                    </div>
-                    <Progress value={testStats.beliefs_percent} />
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span>People</span>
-                      <span>{testStats.people_percent}%</span>
-                    </div>
-                    <Progress value={testStats.people_percent} />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
         <div className="flex items-center justify-center min-h-screen">
           <div className="w-full max-w-3xl mx-auto p-6 bg-card rounded shadow">
-            <h2 className="text-2xl font-bold mb-4">Test Complete</h2>
+            <h2 className="text-2xl font-bold mb-4 capitalize">{` ${testType} Practice Test ${testId} Completed`}</h2>
             <div className="mb-4 border border-border rounded-md p-4">
               <p>You answered {totalCorrect} out of {questions.length} questions correctly.</p>
               <span className="font-semibold">Score:</span>&nbsp;
@@ -497,65 +438,54 @@ export default function PracticeTestClient({ questions, isPremium, upgradePriceI
 
   return (
     <div className="space-y-6">
-      {testStats && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Previous Test Results</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Overall Score</p>
-                  <p className="text-2xl font-bold">{testStats.score_percent}%</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Attempts</p>
-                  <p className="text-2xl font-bold">{testStats.attempt_count}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Status</p>
-                  <p className={`text-2xl font-bold ${testStats.passed ? 'text-green-500' : 'text-red-500'}`}>
-                    {testStats.passed ? 'PASSED' : 'FAILED'}
-                  </p>
-                </div>
+      {/* HUD: Previous Test Stats */}
+      {testResult && (
+        <Card className="mb-6 shadow-md border bg-card/90">
+          <CardContent className="flex flex-wrap items-center gap-6 py-4 px-6 justify-between">
+            <div className="flex flex-col items-center min-w-[80px]">
+              <span className="text-xs font-medium text-muted-foreground tracking-widest mb-1">SCORE</span>
+              <span className={`text-2xl font-bold ${testResult.score_percent >= 75 ? 'text-green-500' : 'text-red-500'}`}>{testResult.score_percent}%</span>
+            </div>
+            <div className="flex flex-col items-center min-w-[80px]">
+              <span className="text-xs font-medium text-muted-foreground tracking-widest mb-1">ATTEMPTS</span>
+              <span className="text-xl font-semibold">{testResult.attempt_count}</span>
+            </div>
+            <div className="flex flex-col items-center min-w-[80px]">
+              <span className="text-xs font-medium text-muted-foreground tracking-widest mb-1">STATUS</span>
+              <span className={`text-base px-3 py-1 rounded-full font-bold ${testResult.passed ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'}`}>{testResult.passed ? 'Passed' : 'Failed'}</span>
+            </div>
+            <div className="flex flex-col items-center min-w-[80px]">
+              <span className="text-xs font-medium text-muted-foreground tracking-widest mb-1">BEST TIME</span>
+              <span className="text-lg font-mono">{testResult.time_used_seconds ? `${Math.floor(testResult.time_used_seconds/60)}:${(testResult.time_used_seconds%60).toString().padStart(2,'0')}` : '--:--'}</span>
+            </div>
+            {testResult.last_attempted && (
+              <div className="flex flex-col items-center min-w-[120px]">
+                <span className="text-xs font-medium text-muted-foreground tracking-widest mb-1">LAST ATTEMPTED</span>
+                <span className="text-sm font-medium" title={format(new Date(testResult.last_attempted), 'PPpp')}>
+                  {formatDistanceToNow(new Date(testResult.last_attempted), { addSuffix: true })}
+                </span>
               </div>
-              <div className="space-y-2">
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span>Values</span>
-                    <span>{testStats.values_percent}%</span>
-                  </div>
-                  <Progress value={testStats.values_percent} />
-                </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span>Government</span>
-                    <span>{testStats.government_percent}%</span>
-                  </div>
-                  <Progress value={testStats.government_percent} />
-                </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span>Beliefs</span>
-                    <span>{testStats.beliefs_percent}%</span>
-                  </div>
-                  <Progress value={testStats.beliefs_percent} />
-                </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span>People</span>
-                    <span>{testStats.people_percent}%</span>
-                  </div>
-                  <Progress value={testStats.people_percent} />
-                </div>
-              </div>
+            )}
+            <div className="flex flex-col items-center min-w-[80px]">
+              <span className="text-xs font-medium text-muted-foreground tracking-widest mb-1">VALUES</span>
+              <span className="text-lg font-semibold">{testResult.values_percent}%</span>
+            </div>
+            <div className="flex flex-col items-center min-w-[80px]">
+              <span className="text-xs font-medium text-muted-foreground tracking-widest mb-1">GOVT</span>
+              <span className="text-lg font-semibold">{testResult.government_percent}%</span>
+            </div>
+            <div className="flex flex-col items-center min-w-[80px]">
+              <span className="text-xs font-medium text-muted-foreground tracking-widest mb-1">BELIEFS</span>
+              <span className="text-lg font-semibold">{testResult.beliefs_percent}%</span>
+            </div>
+            <div className="flex flex-col items-center min-w-[80px]">
+              <span className="text-xs font-medium text-muted-foreground tracking-widest mb-1">PEOPLE</span>
+              <span className="text-lg font-semibold">{testResult.people_percent}%</span>
             </div>
           </CardContent>
         </Card>
       )}
-      
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center p-2">
         <div className="w-full max-w-5xl p-5 bg-card rounded shadow">
           <div className="flex justify-between items-center mb-4 px-2 flex-wrap gap-2">
             <div>

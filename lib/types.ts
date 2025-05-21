@@ -15,6 +15,7 @@ export interface TestResult {
   passed: boolean;
   feedback_rating?: number;
   feedback_comment?: string;
+  last_attempted?: string;
 }
 
 export type TestType = 'dashboard' | 'guided' | 'sequential' | 'random'; 

@@ -22,7 +22,7 @@ export async function storeTestResult(userId: string, email: string, fullName: s
   let updatedResults: TestResult[];
   if (existingIndex === -1) {
     // No existing result for this test_id, add new result
-    updatedResults = [...existingResults, result];
+    updatedResults = [...existingResults, { ...result, last_attempted: new Date().toISOString() }];
   } else {
     // Found existing result, calculate averages
     const existingResult = existingResults[existingIndex];
@@ -46,7 +46,9 @@ export async function storeTestResult(userId: string, email: string, fullName: s
       passed: result.passed,
       // Keep the latest feedback if provided
       feedback_rating: result.feedback_rating || existingResult.feedback_rating,
-      feedback_comment: result.feedback_comment || existingResult.feedback_comment
+      feedback_comment: result.feedback_comment || existingResult.feedback_comment,
+      // Always update the last attempted timestamp
+      last_attempted: new Date().toISOString()
     };
 
     // Replace the existing result with the averaged one
@@ -85,4 +87,64 @@ export async function storeTestResult(userId: string, email: string, fullName: s
   if (error) throw error;
 
   return passFailStats;
+}
+
+export async function fetchTestResultForTest(userId: string, testType: TestType, testId: number): Promise<TestResult | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data: existingRecord } = await supabase
+    .from('test_summary')
+    .select()
+    .eq('user_id', userId)
+    .single();
+  if (!existingRecord) return null;
+  const resultsField = `${testType}_results`;
+  const results = existingRecord[resultsField] || [];
+  const result = results.find((r: TestResult) => r.test_id === testId);
+  return result || null;
+}
+
+export async function fetchTestTypeAverages(userId: string, testType: TestType) {
+  const supabase = await createSupabaseServerClient();
+  const { data: existingRecord } = await supabase
+    .from('test_summary')
+    .select()
+    .eq('user_id', userId)
+    .single();
+  if (!existingRecord) return null;
+  const resultsField = `${testType}_results`;
+  const results = existingRecord[resultsField] || [];
+  if (!Array.isArray(results) || results.length === 0) return null;
+
+  // Calculate averages
+  const total = results.length;
+  const sum = results.reduce((acc, r) => {
+    acc.score += r.score_percent || 0;
+    acc.attempts += r.attempt_count || 0;
+    acc.passed += r.passed ? 1 : 0;
+    acc.values += r.values_percent || 0;
+    acc.government += r.government_percent || 0;
+    acc.beliefs += r.beliefs_percent || 0;
+    acc.people += r.people_percent || 0;
+    return acc;
+  }, { score: 0, attempts: 0, passed: 0, values: 0, government: 0, beliefs: 0, people: 0 });
+
+  // Find the most recent attempt
+  const lastAttempted = results.reduce((latest: string | null, r) => {
+    if (!r.last_attempted) return latest;
+    if (!latest) return r.last_attempted;
+    return new Date(r.last_attempted) > new Date(latest) ? r.last_attempted : latest;
+  }, null);
+
+  return {
+    avgScore: Math.round(sum.score / total),
+    avgAttempts: (sum.attempts / total).toFixed(1),
+    passRate: Math.round((sum.passed / total) * 100),
+    avgValues: Math.round(sum.values / total),
+    avgGovernment: Math.round(sum.government / total),
+    avgBeliefs: Math.round(sum.beliefs / total),
+    avgPeople: Math.round(sum.people / total),
+    totalTests: total,
+    totalAttempts: sum.attempts,
+    lastAttempted
+  };
 } 
