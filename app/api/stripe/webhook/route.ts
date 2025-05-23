@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '../../../../lib/stripeClient';
 import { createClient } from '@supabase/supabase-js';
 import { randomBytes } from 'crypto';
+import Stripe from 'stripe';
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 const supabaseUrl    = process.env.SUPABASE_URL!;
@@ -40,16 +41,14 @@ export async function POST(req: NextRequest) {
     event.type === 'invoice.payment_succeeded'
   ) {
     console.log('event', event.type);
-    const obj          = event.data.object as any;
-    const metadata     = obj.metadata || {};
+    const invoice          = event.data.object as Stripe.Invoice;
+    const metadata     = invoice.metadata || {};
     const supabaseUserId = metadata.customerId as string | undefined;
     const email    = metadata.customerEmail as string
-                  || (obj.customer_email as string)
-                  || obj.customer;
-    const subscriptionId = event.type === 'invoice.payment_succeeded'
-                         ? obj.subscription as string
-                         : obj.subscription as string;
-    const name     = obj.customer_details?.name || obj.billing_details?.name || '';
+                  || (invoice.customer_email as string)
+                  || invoice.customer;
+    const subscriptionId = (invoice as any).subscription as string | undefined;
+    const name     = (invoice as any).customer_details?.name || (invoice as any).billing_details?.name || '';
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
@@ -63,23 +62,25 @@ export async function POST(req: NextRequest) {
       }
     } else {
       console.log('email', email);
-      const existing = await findUserByEmail(supabase, email);
-      if (existing) {
-        console.log('existing', existing);
-        const existingMeta = existing.user_metadata;
-        await supabase.auth.admin.updateUserById(existing.id, {
-          user_metadata: { ...existingMeta, subscription: subscriptionId }
-        });
-      } else {
-        console.log('creating user', email);
-        const randomPassword = randomBytes(12).toString('base64');
-        await supabase.auth.admin.createUser({
-          email,
-          password: randomPassword,
-          email_confirm: true,
-          user_metadata: { full_name: name, subscription: subscriptionId }
-        });
-        await supabase.auth.admin.inviteUserByEmail(email);
+      if (typeof email === 'string') {
+        const existing = await findUserByEmail(supabase, email);
+        if (existing) {
+          console.log('existing', existing);
+          const existingMeta = existing.user_metadata;
+          await supabase.auth.admin.updateUserById(existing.id, {
+            user_metadata: { ...existingMeta, subscription: subscriptionId }
+          });
+        } else {
+          console.log('creating user', email);
+          const randomPassword = randomBytes(12).toString('base64');
+          await supabase.auth.admin.createUser({
+            email,
+            password: randomPassword,
+            email_confirm: true,
+            user_metadata: { full_name: name, subscription: subscriptionId }
+          });
+          await supabase.auth.admin.inviteUserByEmail(email);
+        }
       }
     }
   }
