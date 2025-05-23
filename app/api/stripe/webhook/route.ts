@@ -46,29 +46,23 @@ async function getRawBody(request: NextRequest): Promise<Buffer> {
 }
 
 export async function POST(req: NextRequest) {
-  // read raw body
-  // Get raw body as Buffer
-  let rawBody: Buffer;
-  try {
-    rawBody = await getRawBody(req);
-  } catch (error) {
-    console.error("Raw body error:", error);
-    return new NextResponse("Failed to read request body", { status: 400 });
-  }
-
   // Get Stripe signature header
   const signature = req.headers.get("stripe-signature");
   if (!signature) {
     console.error("Missing Stripe signature");
     return new NextResponse("Missing Stripe signature", { status: 400 });
   }
-  let event: Stripe.Event;
+  let event: Stripe.Event
+  let rawBody: Buffer;
+
   try {
-    event = stripe.webhooks.constructEvent(rawBody, signature, endpointSecret);
+    const buf = await req.arrayBuffer()
+    rawBody = Buffer.from(buf)
+    event = stripe.webhooks.constructEvent(rawBody, signature, endpointSecret)
   } catch (err: any) {
-    console.error("Webhook verification failed:", err.message);
-    return new NextResponse("Webhook verification failed", { status: 400 });
+    return new NextResponse("Webhook verification failed", { status: 400 })
   }
+
   if (event.type === 'checkout.session.completed' || event.type === 'invoice.payment_succeeded') {
     const invoice          = event.data.object as Stripe.Invoice
     const metadata         = invoice.metadata || {}
