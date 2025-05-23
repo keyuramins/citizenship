@@ -45,9 +45,6 @@ export async function createStripeCheckoutSession({
     cancel_url: cancelUrl,
     allow_promotion_codes: true,
     metadata,
-    payment_intent_data: {
-      metadata,
-    },
     subscription_data: {
       metadata,
     },
