@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
     customerId: user?.id,
   };
   try {
+    console.log('metadata', metadata);
     const session = await createStripeCheckoutSession({
       priceId,
       customerEmail,
@@ -28,8 +29,10 @@ export async function POST(req: NextRequest) {
       cancelUrl: `${origin}/dashboard?checkout=cancel`,
       metadata,
     });
+    console.log('session', session);
     return NextResponse.json({ url: session.url });
   } catch (err: any) {
+    console.log('err', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 } 

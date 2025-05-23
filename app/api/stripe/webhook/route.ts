@@ -12,6 +12,7 @@ async function findUserByEmail(supabase: any, email: string) {
   let page = 1;
   const perPage = 100;
   while (true) {
+    console.log('page', page);
     const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
     if (error) throw error;
     const match = data.users.find((u: any) => u.email === email);
@@ -30,13 +31,15 @@ export async function POST(req: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret);
   } catch (err: any) {
+    console.log('err', err);
     return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
   }
-
+  console.log('event', event);
   if (
     event.type === 'checkout.session.completed' ||
     event.type === 'invoice.payment_succeeded'
   ) {
+    console.log('event', event.type);
     const obj          = event.data.object as any;
     const metadata     = obj.metadata || {};
     const supabaseUserId = metadata.customerId as string | undefined;
@@ -59,13 +62,16 @@ export async function POST(req: NextRequest) {
         });
       }
     } else {
+      console.log('email', email);
       const existing = await findUserByEmail(supabase, email);
       if (existing) {
+        console.log('existing', existing);
         const existingMeta = existing.user_metadata;
         await supabase.auth.admin.updateUserById(existing.id, {
           user_metadata: { ...existingMeta, subscription: subscriptionId }
         });
       } else {
+        console.log('creating user', email);
         const randomPassword = randomBytes(12).toString('base64');
         await supabase.auth.admin.createUser({
           email,
