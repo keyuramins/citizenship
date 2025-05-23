@@ -14,9 +14,9 @@ export const config = {
   },
 }
 
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!
-const supabaseUrl    = process.env.SUPABASE_URL!
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET || ''
+const supabaseUrl    = process.env.SUPABASE_URL || ''
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
 async function findUserByEmail(supabase: any, email: string) {
   let page = 1
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
   }
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(rawBody, signature, process.env.STRIPE_WEBHOOK_SECRET!);
+    event = stripe.webhooks.constructEvent(rawBody, signature, endpointSecret);
   } catch (err: any) {
     console.error("Webhook verification failed:", err.message);
     return new NextResponse("Webhook verification failed", { status: 400 });
