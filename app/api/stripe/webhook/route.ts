@@ -1,6 +1,6 @@
 // app/api/stripe/webhook/route.ts
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { Stripe } from 'stripe'
 import { stripe } from '../../../../lib/stripeClient'
 import { createClient } from '@supabase/supabase-js'
@@ -32,18 +32,43 @@ async function findUserByEmail(supabase: any, email: string) {
   return null
 }
 
-export async function POST(req: Request) {
-  // read raw body
-  const buf = Buffer.from(await req.arrayBuffer())
-  const sig = req.headers.get('stripe-signature')!
-  let event: Stripe.Event
-
+async function getRawBody(request: NextRequest): Promise<Buffer> {
   try {
-    event = stripe.webhooks.constructEvent(buf, sig, endpointSecret)
-  } catch (err: any) {
-    return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 })
+    const chunks: Buffer[] = [];
+    for await (const chunk of request.body as any) {
+      chunks.push(Buffer.from(chunk));
+    }
+    return Buffer.concat(chunks);
+  } catch (error) {
+    console.error("Error reading raw body:", error);
+    throw new Error("Failed to read request body");
+  }
+}
+
+export async function POST(req: NextRequest) {
+  // read raw body
+  // Get raw body as Buffer
+  let rawBody: Buffer;
+  try {
+    rawBody = await getRawBody(req);
+  } catch (error) {
+    console.error("Raw body error:", error);
+    return new NextResponse("Failed to read request body", { status: 400 });
   }
 
+  // Get Stripe signature header
+  const signature = req.headers.get("stripe-signature");
+  if (!signature) {
+    console.error("Missing Stripe signature");
+    return new NextResponse("Missing Stripe signature", { status: 400 });
+  }
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(rawBody, signature, process.env.STRIPE_WEBHOOK_SECRET!);
+  } catch (err: any) {
+    console.error("Webhook verification failed:", err.message);
+    return new NextResponse("Webhook verification failed", { status: 400 });
+  }
   if (event.type === 'checkout.session.completed' || event.type === 'invoice.payment_succeeded') {
     const invoice          = event.data.object as Stripe.Invoice
     const metadata         = invoice.metadata || {}
