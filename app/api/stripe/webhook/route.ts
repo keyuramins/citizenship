@@ -55,8 +55,7 @@ export async function POST(req: NextRequest) {
   let event: Stripe.Event
 
   try {
-    const text = await req.text()
-    const rawBody = Buffer.from(text, 'utf8')
+    const rawBody = await getRawBody(req)
     event = stripe.webhooks.constructEvent(rawBody, signature, endpointSecret)
   } catch (err: any) {
     return new NextResponse('Webhook verification failed', { status: 400 })
