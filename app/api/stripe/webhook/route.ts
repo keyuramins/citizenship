@@ -4,9 +4,9 @@ import { stripe } from '../../../../lib/stripeClient';
 import { createClient } from '@supabase/supabase-js';
 import { randomBytes } from 'crypto';
 
-const endpointSecret   = process.env.STRIPE_WEBHOOK_SECRET!;
-const supabaseUrl      = process.env.SUPABASE_URL!;
-const serviceRoleKey   = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+const supabaseUrl    = process.env.SUPABASE_URL!;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 async function findUserByEmail(supabase: any, email: string) {
   let page = 1;
@@ -33,12 +33,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
   }
 
-  if (event.type === 'checkout.session.completed') {
-    const session        = event.data.object as any;
-    const subscriptionId = session.subscription as string;
-    const name           = session.customer_details?.name || '';
-    const metaEmail      = session.metadata.customerEmail as string;
-    const supabaseUserId = session.metadata.customerId as string | undefined;
+  if (
+    event.type === 'checkout.session.completed' ||
+    event.type === 'invoice.payment_succeeded'
+  ) {
+    const obj          = event.data.object as any;
+    const metadata     = obj.metadata || {};
+    const supabaseUserId = metadata.customerId as string | undefined;
+    const email        = metadata.customerEmail as string;
+    const subscriptionId = obj.subscription as string;
+    const name         = obj.customer_details?.name || obj.billing_details?.name || '';
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
@@ -51,8 +55,7 @@ export async function POST(req: NextRequest) {
         });
       }
     } else {
-      const existing = await findUserByEmail(supabase, metaEmail);
-
+      const existing = await findUserByEmail(supabase, email);
       if (existing) {
         const existingMeta = existing.user_metadata;
         await supabase.auth.admin.updateUserById(existing.id, {
@@ -60,13 +63,13 @@ export async function POST(req: NextRequest) {
         });
       } else {
         const randomPassword = randomBytes(12).toString('base64');
-        const { data: newUser } = await supabase.auth.admin.createUser({
-          email: metaEmail,
+        await supabase.auth.admin.createUser({
+          email,
           password: randomPassword,
           email_confirm: true,
           user_metadata: { full_name: name, subscription: subscriptionId }
         });
-        await supabase.auth.admin.inviteUserByEmail(metaEmail);
+        await supabase.auth.admin.inviteUserByEmail(email);
       }
     }
   }
