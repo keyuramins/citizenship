@@ -40,9 +40,13 @@ export async function POST(req: NextRequest) {
     const obj          = event.data.object as any;
     const metadata     = obj.metadata || {};
     const supabaseUserId = metadata.customerId as string | undefined;
-    const email        = metadata.customerEmail as string;
-    const subscriptionId = obj.subscription as string;
-    const name         = obj.customer_details?.name || obj.billing_details?.name || '';
+    const email    = metadata.customerEmail as string
+                  || (obj.customer_email as string)
+                  || obj.customer;
+    const subscriptionId = event.type === 'invoice.payment_succeeded'
+                         ? obj.subscription as string
+                         : obj.subscription as string;
+    const name     = obj.customer_details?.name || obj.billing_details?.name || '';
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 

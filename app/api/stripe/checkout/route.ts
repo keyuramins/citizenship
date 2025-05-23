@@ -15,6 +15,10 @@ export async function POST(req: NextRequest) {
   }
   const { priceId, customerEmail, customerId } = body;
   const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL;
+  const metadata = {
+    customerEmail: user?.email || customerEmail,
+    customerId: user?.id,
+  };
   try {
     const session = await createStripeCheckoutSession({
       priceId,
@@ -22,7 +26,7 @@ export async function POST(req: NextRequest) {
       customerId,
       successUrl: `${origin}/dashboard?checkout=success`,
       cancelUrl: `${origin}/dashboard?checkout=cancel`,
-      metadata: { customerEmail: user && user.email || customerEmail, customerId: user && user.id || undefined },
+      metadata,
     });
     return NextResponse.json({ url: session.url });
   } catch (err: any) {
