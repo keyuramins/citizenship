@@ -53,14 +53,13 @@ export async function POST(req: NextRequest) {
     return new NextResponse("Missing Stripe signature", { status: 400 });
   }
   let event: Stripe.Event
-  let rawBody: Buffer;
 
   try {
-    const buf = await req.arrayBuffer()
-    rawBody = Buffer.from(buf)
+    const text = await req.text()
+    const rawBody = Buffer.from(text, 'utf8')
     event = stripe.webhooks.constructEvent(rawBody, signature, endpointSecret)
   } catch (err: any) {
-    return new NextResponse("Webhook verification failed", { status: 400 })
+    return new NextResponse('Webhook verification failed', { status: 400 })
   }
 
   if (event.type === 'checkout.session.completed' || event.type === 'invoice.payment_succeeded') {
