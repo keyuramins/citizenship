@@ -5,6 +5,7 @@ import { Card, CardHeader, CardContent, CardFooter, CardTitle } from '../../comp
 import { Button } from '../../components/ui/button';
 import { BarChart2, BookOpen, Shuffle, ListChecks, TrendingUp, CheckCircle2, Repeat2, PercentCircle, LayoutGrid, Users, Landmark, HeartHandshake, UserCheck } from 'lucide-react';
 import Link from 'next/link';
+import RefreshSessionOnCheckout from "../../components/dashboard/RefreshSessionOnCheckout";
 
 export default async function DashboardPage() {
   const supabase = await createSupabaseServerClient();
@@ -78,7 +79,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="p-8 flex flex-col gap-10">
-      <h1 className="text-2xl font-bold mb-2">Dashboard</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2 px-5">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <RefreshSessionOnCheckout />
+      </div>
       {/* Section 1: Performance Stats */}
       <div className="mb-2">
         <div className="text-lg font-semibold mb-4">Performance Overview</div>

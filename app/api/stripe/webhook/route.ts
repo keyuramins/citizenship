@@ -15,8 +15,11 @@ export const config = {
 }
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET || ''
+console.log('endpointSecret', endpointSecret)
 const supabaseUrl    = process.env.SUPABASE_URL || ''
+console.log('supabaseUrl', supabaseUrl)
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+console.log('serviceRoleKey', serviceRoleKey)
 
 async function findUserByEmail(supabase: any, email: string) {
   let page = 1
@@ -46,7 +49,6 @@ async function getRawBody(request: NextRequest): Promise<Buffer> {
 }
 
 export async function POST(req: NextRequest) {
-  // Get Stripe signature header
   const signature = req.headers.get("stripe-signature");
   if (!signature) {
     console.error("Missing Stripe signature");
@@ -56,11 +58,15 @@ export async function POST(req: NextRequest) {
 
   try {
     const rawBody = await getRawBody(req)
+    console.log("rawBody length:", rawBody.length)
+    console.log("signature:", signature)
+    console.log("endpointSecret present:", !!endpointSecret)
     event = stripe.webhooks.constructEvent(rawBody, signature, endpointSecret)
   } catch (err: any) {
+    console.error("Webhook verification failed:", err.message)
     return new NextResponse('Webhook verification failed', { status: 400 })
   }
-
+  console.log('event.type', event.type)
   if (event.type === 'checkout.session.completed' || event.type === 'invoice.payment_succeeded') {
     const invoice          = event.data.object as Stripe.Invoice
     const metadata         = invoice.metadata || {}
@@ -74,10 +80,16 @@ export async function POST(req: NextRequest) {
                           || ''
 
     const supabase = createClient(supabaseUrl, serviceRoleKey)
-
+    console.log('supabaseUserId', supabaseUserId)
+    console.log('email', email)
+    console.log('subscriptionId', subscriptionId)
+    console.log('name', name)
     if (supabaseUserId) {
+      console.log('supabaseUserId', supabaseUserId)
       const { data: getRes } = await supabase.auth.admin.getUserById(supabaseUserId)
+      console.log('getRes', getRes)
       if (getRes.user) {
+        console.log('getRes.user', getRes.user)
         await supabase.auth.admin.updateUserById(supabaseUserId, {
           user_metadata: {
             ...getRes.user.user_metadata,
@@ -85,9 +97,12 @@ export async function POST(req: NextRequest) {
           },
         })
       }
+      console.log('getRes.user', getRes.user)
     } else if (typeof email === 'string') {
+      console.log('email', email)
       const existing = await findUserByEmail(supabase, email)
       if (existing) {
+        console.log('existing', existing)
         await supabase.auth.admin.updateUserById(existing.id, {
           user_metadata: {
             ...existing.user_metadata,
@@ -96,12 +111,14 @@ export async function POST(req: NextRequest) {
         })
       } else {
         const randomPassword = randomBytes(12).toString('base64')
+        console.log('randomPassword', randomPassword)
         await supabase.auth.admin.createUser({
           email,
           password: randomPassword,
           email_confirm: true,
           user_metadata: { full_name: name, subscription: subscriptionId },
         })
+        console.log('inviteUserByEmail', email)
         await supabase.auth.admin.inviteUserByEmail(email)
       }
     }
